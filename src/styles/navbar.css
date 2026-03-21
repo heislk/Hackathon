@@ -1,0 +1,28 @@
+/* ChatGPT */
+
+/* Navbar */
+.navbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 40px;
+  border-bottom: 1px solid #1f2937;
+  background-color: #0b0f1a;
+}
+
+.logo {
+  font-size: 22px;
+  font-weight: bold;
+  color: #22c55e;
+}
+
+.nav-links a {
+  margin-left: 25px;
+  text-decoration: none;
+  color: #cbd5e1;
+  font-size: 16px;
+}
+
+.nav-links a:hover {
+  color: #22c55e;
+}
