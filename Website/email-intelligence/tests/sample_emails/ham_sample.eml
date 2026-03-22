@@ -1,0 +1,28 @@
+From: "Coinbase" <no-reply@coinbase.com>
+To: customer@example.com
+Subject: Your weekly portfolio summary - March 20, 2026
+Date: Thu, 20 Mar 2026 08:00:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass (google.com: domain of coinbase.com designates 192.0.2.100 as permitted sender) smtp.mailfrom=coinbase.com;
+   dkim=pass header.i=@coinbase.com header.s=google;
+   dmarc=pass (p=REJECT sp=REJECT dis=NONE) header.from=coinbase.com
+Received: from mail.coinbase.com (mail.coinbase.com [192.0.2.100])
+Content-Type: text/plain; charset=utf-8
+
+Hi there,
+
+Here is your weekly portfolio summary for the week ending March 20, 2026.
+
+Your portfolio performance:
+- BTC: +2.3%
+- ETH: +1.8%
+- Total portfolio value: up 2.1%
+
+You can view your full portfolio at https://coinbase.com/dashboard
+
+If you have any questions, visit our help center at https://help.coinbase.com
+
+Thank you for using Coinbase.
+
+The Coinbase Team

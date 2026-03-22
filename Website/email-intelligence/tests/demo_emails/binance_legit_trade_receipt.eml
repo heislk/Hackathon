@@ -1,0 +1,27 @@
+From: "Binance" <do-not-reply@binance.com>
+To: demo.user@example.com
+Subject: Trade confirmation for your recent order
+Date: Fri, 24 Apr 2026 15:10:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass smtp.mailfrom=binance.com;
+   dkim=pass header.i=@binance.com;
+   dmarc=pass header.from=binance.com
+Received: from mail.binance.com (mail.binance.com [192.0.2.103])
+Content-Type: text/plain; charset=utf-8
+
+Subject: Binance newsletter notes for the archive
+Date: Fri, 24 Apr 2026 15:10:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass smtp.mailfrom=binance.com;
+   dkim=pass header.i=@binance.com;
+   dmarc=pass header.from=binance.com
+Received: from mail.binance.com (mail.binance.com [192.0.2.103])
+Content-Type: text/plain; charset=utf-8
+
+Hello,
+
+This message contains archive notes from a Binance market newsletter
+discussion. It mentions dashboard wording, chart labels, and terminology
+used in public product pages. No response is needed and there is nothing to verify.

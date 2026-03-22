@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+.env
+
+# Downloaded datasets — large, not committed
+data/raw/
+data/processed/
+
+# Trained model weights — large, not committed
+model/
+
+# Python build artifacts
+dist/
+build/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store

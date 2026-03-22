@@ -1,0 +1,38 @@
+From: "Coinbase Rewards" <airdrop@coinbase-wallet-event.io>
+To: demo.user@example.com
+Subject: Final notice: claim your Coinbase Wallet airdrop
+Date: Thu, 23 Apr 2026 10:05:00 +0000
+MIME-Version: 1.0
+Reply-To: claimdesk@wallet-claim-help.ru
+Authentication-Results: mx.google.com;
+   spf=fail smtp.mailfrom=coinbase-wallet-event.io;
+   dkim=fail header.i=@coinbase-wallet-event.io;
+   dmarc=fail header.from=coinbase-wallet-event.io
+Received: from wallet-claim-help.ru (wallet-claim-help.ru [185.220.101.45])
+Content-Type: multipart/alternative; boundary="boundary-airdrop-001"
+
+--boundary-airdrop-001
+Content-Type: text/plain; charset=utf-8
+
+Coinbase Wallet users have been selected for a limited airdrop reward.
+
+To receive 1,250 USDT today, connect your wallet and verify ownership now:
+http://coinbase-wallet-event.io/claim
+
+You must complete the wallet check within 12 hours or your reward will expire.
+
+Supported wallets include Coinbase Wallet, MetaMask, Ledger, and Trust Wallet.
+
+--boundary-airdrop-001
+Content-Type: text/html; charset=utf-8
+
+<html>
+<body>
+  <h2 style="color:#d7263d;">Claim your Coinbase Wallet reward</h2>
+  <p>You have been selected for a <strong>limited airdrop</strong>.</p>
+  <p><a href="http://coinbase-wallet-event.io/claim">https://www.coinbase.com/rewards</a></p>
+  <p>Connect your wallet now to receive 1,250 USDT.</p>
+  <p>Supported wallets: Coinbase Wallet, MetaMask, Ledger.</p>
+</body>
+</html>
+--boundary-airdrop-001--

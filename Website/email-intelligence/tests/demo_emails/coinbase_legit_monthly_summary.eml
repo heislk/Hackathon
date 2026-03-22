@@ -1,0 +1,24 @@
+From: "Coinbase Community" <community@updates.coinbase.com>
+To: demo.user@example.com
+Subject: Re: notes from the Coinbase developer meetup
+Date: Mon, 20 Apr 2026 09:00:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass smtp.mailfrom=updates.coinbase.com;
+   dkim=pass header.i=@updates.coinbase.com;
+   dmarc=pass header.from=coinbase.com
+Received: from updates.coinbase.com (updates.coinbase.com [192.0.2.100])
+Content-Type: text/plain; charset=utf-8
+
+Hi all,
+
+Posting the short notes from yesterday's Coinbase developer meetup.
+
+We talked about csv export formatting, api pagination, dashboard labels,
+and a few documentation links that should be cleaned up. This is only a
+recap for people who missed the meeting. No action is required.
+
+I'll send a cleaned-up version to the list archive tomorrow.
+
+Thanks,
+Maya

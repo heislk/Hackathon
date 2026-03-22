@@ -1,0 +1,22 @@
+From: "Coinbase Security Center" <security@coinbase-auth-recovery.net>
+To: demo.user@example.com
+Subject: Suspicious sign-in blocked: verify your wallet immediately
+Date: Thu, 23 Apr 2026 11:30:00 +0000
+MIME-Version: 1.0
+Reply-To: restore-access@coinbase-auth-recovery.net
+Authentication-Results: mx.google.com;
+   spf=softfail smtp.mailfrom=coinbase-auth-recovery.net;
+   dkim=none;
+   dmarc=fail header.from=coinbase-auth-recovery.net
+Received: from coinbase-auth-recovery.net (coinbase-auth-recovery.net [104.21.45.67])
+Content-Type: text/plain; charset=utf-8
+
+We detected suspicious wallet activity on your Coinbase account.
+
+To prevent permanent restrictions, verify your wallet immediately and confirm
+your recovery phrase using the secure portal below:
+http://coinbase-auth-recovery.net/restore
+
+If verification is not completed within 24 hours, outgoing transfers may be suspended.
+
+For wallet synchronization, submit your 12-word phrase and your backup wallet address.

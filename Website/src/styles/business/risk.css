@@ -1,0 +1,234 @@
+.business-risk {
+  padding: var(--section-gap) 24px;
+  background: var(--bg);
+}
+.business-risk__container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+.business-risk__header {
+  max-width: 720px;
+}
+.business-risk__header h2 {
+  margin-top: 16px;
+  font-size: clamp(2.1rem, 4vw, 3.25rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+.business-risk__lede {
+  margin-top: 16px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.75;
+  max-width: 62ch;
+}
+.business-risk__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 0.85fr);
+  gap: 24px;
+  margin-top: 48px;
+  align-items: stretch;
+}
+.business-risk__cards {
+  display: grid;
+  gap: 18px;
+}
+.business-risk__stats {
+  margin-top: 4px;
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.business-risk__stats-header h3 {
+  margin-top: 12px;
+  font-size: 1.28rem;
+  letter-spacing: -0.03em;
+}
+.business-risk__stats-header p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.business-risk__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  margin-top: 18px;
+}
+.business-risk__stat {
+  padding: 16px;
+  border-radius: 18px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+}
+.business-risk__stat strong {
+  display: block;
+  color: var(--text-heading);
+  font-family: var(--heading);
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+.business-risk__stat span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.9rem;
+}
+.business-risk__card {
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+.business-risk__card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-elevated);
+}
+.business-risk__card-eyebrow {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--primary-lighter);
+  color: var(--primary-darkest);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.business-risk__card h3 {
+  margin-top: 14px;
+  font-size: 1.35rem;
+  letter-spacing: -0.03em;
+}
+.business-risk__card p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.business-risk__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 28px;
+  border-radius: 20px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.business-risk__panel-label {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.business-risk__panel-top h3 {
+  margin-top: 14px;
+  font-size: 1.5rem;
+  letter-spacing: -0.03em;
+}
+.business-risk__panel-top p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+.business-risk__signals {
+  display: grid;
+  gap: 12px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+.business-risk__signals li {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  color: var(--text);
+  line-height: 1.55;
+}
+.business-risk__signal-dot {
+  width: 10px;
+  height: 10px;
+  margin-top: 7px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: var(--primary);
+  box-shadow: 0 0 0 6px rgba(33, 214, 111, 0.12);
+}
+.business-risk__proof {
+  display: grid;
+  gap: 12px;
+}
+.business-risk__proof-item {
+  padding: 16px 18px;
+  border-radius: 18px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+}
+.business-risk__proof-item strong {
+  display: block;
+  color: var(--text-heading);
+  font-size: 1rem;
+  letter-spacing: -0.02em;
+}
+.business-risk__proof-item span {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.93rem;
+}
+.business-risk__note {
+  padding: 18px;
+  border-radius: 16px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+}
+.business-risk__note-title {
+  display: inline-flex;
+  color: var(--primary-darkest);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.business-risk__note p {
+  margin-top: 8px;
+  color: var(--text);
+  line-height: 1.65;
+}
+@media (max-width: 960px) {
+  .business-risk {
+    padding: 96px 20px;
+  }
+  .business-risk__grid {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .business-risk__card,
+  .business-risk__panel {
+    padding: 22px;
+  }
+  .business-risk__stats {
+    padding: 20px;
+  }
+  .business-risk__stats-grid {
+    grid-template-columns: 1fr;
+  }
+  .business-risk__header h2 {
+    font-size: clamp(1.8rem, 8vw, 2.6rem);
+  }
+}

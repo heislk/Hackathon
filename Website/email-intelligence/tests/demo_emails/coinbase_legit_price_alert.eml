@@ -1,0 +1,20 @@
+From: "Coinbase Archive" <archive@updates.coinbase.com>
+To: demo.user@example.com
+Subject: Coinbase discussion archive copy
+Date: Wed, 22 Apr 2026 16:40:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass smtp.mailfrom=updates.coinbase.com;
+   dkim=pass header.i=@updates.coinbase.com;
+   dmarc=pass header.from=coinbase.com
+Received: from updates.coinbase.com (updates.coinbase.com [192.0.2.102])
+Content-Type: text/plain; charset=utf-8
+
+Hello,
+
+Saving a copy of the Coinbase discussion summary here. The topics were
+documentation wording, statements, export formatting, and how the help
+pages are grouped. This is just a reference message and no follow-up is needed.
+
+Regards,
+Archive bot

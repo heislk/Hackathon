@@ -1,0 +1,19 @@
+From: "Coinbase Docs Team" <docs@updates.coinbase.com>
+To: demo.user@example.com
+Subject: internal notes about Coinbase docs cleanup
+Date: Tue, 21 Apr 2026 13:15:00 +0000
+MIME-Version: 1.0
+Authentication-Results: mx.google.com;
+   spf=pass smtp.mailfrom=updates.coinbase.com;
+   dkim=pass header.i=@updates.coinbase.com;
+   dmarc=pass header.from=coinbase.com
+Received: from updates.coinbase.com (updates.coinbase.com [192.0.2.101])
+Content-Type: text/plain; charset=utf-8
+
+Team,
+
+These are the draft notes for the Coinbase docs cleanup discussion. We
+covered naming inconsistencies, support article redirects, and examples
+used in the reporting section.
+
+Nothing to review right now. Keeping this in email so it is easy to find later.

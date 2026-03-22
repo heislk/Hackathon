@@ -1,0 +1,21 @@
+From: "Kraken Support" <support@kraken-wallet-check.com>
+To: demo.user@example.com
+Subject: Kraken wallet verification required
+Date: Fri, 24 Apr 2026 08:20:00 +0000
+MIME-Version: 1.0
+Reply-To: review@fast-review-mail.ru
+Authentication-Results: mx.google.com;
+   spf=fail smtp.mailfrom=kraken-wallet-check.com;
+   dkim=fail header.i=@kraken-wallet-check.com;
+   dmarc=fail header.from=kraken-wallet-check.com
+Received: from fast-review-mail.ru (fast-review-mail.ru [198.51.100.55])
+Content-Type: text/plain; charset=utf-8
+
+Your Kraken wallet requires identity confirmation before the next withdrawal.
+
+Verify your account now:
+http://kraken-wallet-check.com/verify
+
+To complete the review, connect your wallet and confirm the address holding your ETH.
+
+This action is required today to avoid a temporary hold.

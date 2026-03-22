@@ -1,0 +1,48 @@
+From: "PayPal Security" <security-noreply@paypa1-secure.xyz>
+To: phishing@pot
+Subject: URGENT: Your PayPal account has been suspended!
+Date: Thu, 20 Mar 2026 09:15:00 +0000
+MIME-Version: 1.0
+Reply-To: harvester@evil-collection.ru
+Authentication-Results: mx.google.com;
+   spf=fail (google.com: domain of paypa1-secure.xyz does not designate permitted sender hosts) smtp.mailfrom=paypa1-secure.xyz;
+   dkim=fail header.i=@paypa1-secure.xyz;
+   dmarc=fail (p=NONE sp=NONE dis=NONE) header.from=paypa1-secure.xyz
+Received: from mail-harvester.evil-collection.ru (evil-collection.ru [104.21.45.67])
+Received: from compromised-relay.xyz (compromised-relay.xyz [185.220.101.45])
+Content-Type: multipart/alternative; boundary="==_boundary_phish_001=="
+
+--==_boundary_phish_001==
+Content-Type: text/plain; charset=utf-8
+
+URGENT ACTION REQUIRED
+
+Your PayPal account (phishing@pot) has been suspended due to unusual activity detected.
+
+To restore access to your account immediately, you must verify your identity within 24 hours or your account will be permanently closed.
+
+Click here to verify: http://paypa1-secure.xyz/account/verify?token=abc123evil
+
+You must also confirm your wallet address for security purposes.
+Send 0.01 ETH to confirm identity: 0x098B716B8Aaf21512996dC57EB0615e2383E2f96
+
+Failure to act within 24 hours will result in permanent account suspension.
+
+PayPal Security Team
+
+--==_boundary_phish_001==
+Content-Type: text/html; charset=utf-8
+
+<html>
+<body style="font-family: Arial;">
+<h2 style="color:red;">URGENT: Account Suspended</h2>
+<p>Your PayPal account has been <strong>suspended</strong> due to unusual activity.</p>
+<p>You must <strong>immediately</strong> verify your identity to restore access.</p>
+<p><a href="http://paypa1-secure.xyz/account/verify">http://www.paypal.com/verify</a></p>
+<p>Confirm wallet: 0x098B716B8Aaf21512996dC57EB0615e2383E2f96</p>
+<p>Action required within <strong>24 hours</strong> or account will be permanently closed.</p>
+<hr>
+<small>PayPal, Inc. | phishing@pot</small>
+</body>
+</html>
+--==_boundary_phish_001==--
