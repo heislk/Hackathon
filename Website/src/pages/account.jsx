@@ -27,11 +27,14 @@ function verdictTone(verdict) {
 }
 
 export default function Account() {
-  const { user, loading, logout, getScanHistory, usage } = useAuth();
+  const { user, loading, logout, getScanHistory, usage, changeTier, resetAccountData } = useAuth();
   const { tier, limits } = useSubscription();
   const [history, setHistory] = useState([]);
   const [pagination, setPagination] = useState({ page: 1, pageSize: 8, total: 0, totalPages: 1 });
   const [historyLoading, setHistoryLoading] = useState(true);
+  const [tierBusy, setTierBusy] = useState("");
+  const [resetBusy, setResetBusy] = useState(false);
+  const [demoMessage, setDemoMessage] = useState("");
 
   useEffect(() => {
     if (!user) return undefined;
@@ -62,6 +65,40 @@ export default function Account() {
       .map((part) => part[0]?.toUpperCase() || "")
       .join("");
   }, [user?.email, user?.name]);
+
+  const loadHistoryPage = async (page = pagination.page, pageSize = pagination.pageSize) => {
+    setHistoryLoading(true);
+    const data = await getScanHistory(page, pageSize);
+    setHistory(data.history);
+    setPagination((current) => ({ ...current, ...data.pagination, page, pageSize }));
+    setHistoryLoading(false);
+  };
+
+  const handleTierChange = async (nextTier) => {
+    if (nextTier === tier) return;
+    setTierBusy(nextTier);
+    setDemoMessage("");
+    const result = await changeTier(nextTier);
+    if (result.ok) {
+      setDemoMessage(`Plan switched to ${nextTier}.`);
+    } else {
+      setDemoMessage(result.error || "Could not update plan.");
+    }
+    setTierBusy("");
+  };
+
+  const handleResetData = async () => {
+    setResetBusy(true);
+    setDemoMessage("");
+    const result = await resetAccountData();
+    if (result.ok) {
+      await loadHistoryPage(1, pagination.pageSize);
+      setDemoMessage("Usage and scan history reset for this account.");
+    } else {
+      setDemoMessage(result.error || "Could not reset account data.");
+    }
+    setResetBusy(false);
+  };
 
   if (!loading && !user) {
     return <Navigate to="/login" replace />;
@@ -138,6 +175,37 @@ export default function Account() {
                 <Link className="account-link" to="/risk-scan">
                   Run another scan
                 </Link>
+              </div>
+
+              <div className="account-demo-tools">
+                <div className="account-demo-tools__header">
+                  <div>
+                    <p className="account-card__eyebrow">Demo controls</p>
+                    <h3>Switch plan instantly</h3>
+                  </div>
+                  <button
+                    className="account-button account-button--muted"
+                    type="button"
+                    onClick={handleResetData}
+                    disabled={resetBusy}
+                  >
+                    {resetBusy ? "Resetting..." : "Reset my data"}
+                  </button>
+                </div>
+                <div className="account-tier-picker">
+                  {["free", "pro", "enterprise"].map((option) => (
+                    <button
+                      key={option}
+                      className={`account-tier-option${tier === option ? " account-tier-option--active" : ""}`}
+                      type="button"
+                      onClick={() => handleTierChange(option)}
+                      disabled={Boolean(tierBusy) || resetBusy}
+                    >
+                      {tierBusy === option ? "Switching..." : option}
+                    </button>
+                  ))}
+                </div>
+                {demoMessage ? <p className="account-demo-message">{demoMessage}</p> : null}
               </div>
             </article>
 

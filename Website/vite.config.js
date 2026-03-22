@@ -10,6 +10,8 @@ const chainIntelEntry = pathToFileURL(
   path.resolve(process.cwd(), 'chain-intelligence/dist/src/index.js')
 ).href
 
+const phoneIntelBaseUrl = process.env.VITE_PHONE_INTEL_URL ?? 'http://localhost:8001'
+
 function normalizeKey(value) {
   return String(value ?? '').trim().toLowerCase()
 }
@@ -122,6 +124,15 @@ async function readJsonBody(req) {
 
   const raw = Buffer.concat(chunks).toString('utf8')
   return JSON.parse(raw)
+}
+
+async function readRawBody(req) {
+  const chunks = []
+  for await (const chunk of req) {
+    chunks.push(Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk))
+  }
+
+  return Buffer.concat(chunks)
 }
 
 function sendJson(res, statusCode, payload) {
@@ -301,7 +312,69 @@ function createChainIntelApiPlugin() {
   }
 }
 
+function createPhoneIntelApiPlugin() {
+  return {
+    name: 'phone-intelligence-api',
+    configureServer(server) {
+      server.middlewares.use(async (req, res, next) => {
+        const method = req.method || 'GET'
+        const url = req.url || '/'
+        const isPhoneRoute = url === '/api/phone-scan' || url.startsWith('/api/phone-scan/')
+
+        if (!isPhoneRoute) {
+          next()
+          return
+        }
+
+        if (method === 'OPTIONS') {
+          res.statusCode = 204
+          res.setHeader('Access-Control-Allow-Origin', '*')
+          res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS')
+          res.setHeader('Access-Control-Allow-Headers', 'Content-Type')
+          res.end()
+          return
+        }
+
+        const upstreamPath = url.replace(/^\/api\/phone-scan/, '') || '/'
+        const upstreamUrl = new URL(upstreamPath, phoneIntelBaseUrl)
+
+        try {
+          const headers = new Headers()
+          for (const [key, value] of Object.entries(req.headers)) {
+            if (!value) continue
+            if (key === 'host' || key === 'content-length' || key === 'connection') continue
+            if (Array.isArray(value)) {
+              headers.set(key, value.join(', '))
+            } else {
+              headers.set(key, value)
+            }
+          }
+
+          const body = method === 'GET' || method === 'HEAD' ? undefined : await readRawBody(req)
+          const upstreamResponse = await fetch(upstreamUrl, {
+            method,
+            headers,
+            body: body && body.length > 0 ? body : undefined,
+          })
+
+          res.statusCode = upstreamResponse.status
+          const contentType = upstreamResponse.headers.get('content-type') || 'application/json; charset=utf-8'
+          res.setHeader('Content-Type', contentType)
+          res.setHeader('Access-Control-Allow-Origin', '*')
+
+          const responseBody = Buffer.from(await upstreamResponse.arrayBuffer())
+          res.end(responseBody)
+        } catch (error) {
+          sendJson(res, 502, {
+            error: error instanceof Error ? error.message : 'Phone intelligence backend is unavailable',
+          })
+        }
+      })
+    },
+  }
+}
+
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), createChainIntelApiPlugin(), createAuthApiPlugin()],
+  plugins: [react(), createChainIntelApiPlugin(), createPhoneIntelApiPlugin(), createAuthApiPlugin()],
 })

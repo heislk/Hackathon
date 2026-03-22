@@ -1,0 +1,162 @@
+Create a polished hackathon slide deck for our project "CryptoSecure."
+
+Context:
+- We are a 5-person team.
+- The spoken presentation before the demo should last about 2 to 3 minutes total.
+- We want to leave 2 to 3 minutes for a live product demo.
+- The deck should feel sharp, credible, and fast-moving.
+- The audience is likely judges, mentors, and other technical/non-technical attendees.
+- The goal is to make the problem immediately clear, show why our solution matters, explain how it works at a high level, and tee up the live demo.
+
+Judge calibration:
+- Tailor the messaging for judges who are especially likely to care about cybersecurity, AI credibility, product usefulness, and enterprise practicality.
+- Nicole Gizzi is a cybersecurity consultant at EY with a background spanning IT, finance, marketing, and cybersecurity. She mentors cybersecurity students and values solutions that are both innovative and practical. The deck should make the security problem feel real, the solution feel usable, and the impact feel grounded in actual risk reduction.
+- Mike Spaeth has deep AI, enterprise, and policy leadership experience across USAII, IBM, Moody's, and other AI-focused organizations. The deck should avoid vague AI claims and instead present CryptoSecure as a credible, focused application of AI to fraud detection, phishing analysis, and decision support.
+- Anurima Sandhu has product management experience across Microsoft, Amazon, AbbVie, B2B, B2C, and data engineering. The deck should show that the product is not just technically interesting, but also clear in user flow, value proposition, and market relevance.
+- Garett Chang leads a technology consulting and digital modernization firm. The deck should communicate operational value, adoption practicality, and how this solution could fit into real workflows for users, teams, or exchanges.
+- Overall, the story should emphasize: practical cybersecurity impact, believable AI usage, strong product thinking, and clear enterprise/exchange upside.
+
+What the deck should optimize for:
+- Very little text per slide.
+- Strong visuals, clean hierarchy, and simple, memorable messaging.
+- A clear story arc: problem -> stakes -> solution -> why we win -> demo.
+- Make the presentation feel like a short story with momentum, not just a list of product facts.
+- Enough substance to sound real, but not so much detail that it slows the presentation down.
+- Confidence and clarity over buzzwords.
+
+Deck requirements:
+- Build a 5 to 6 slide main deck max.
+- Include a title slide.
+- Include 1 optional backup slide at the end if helpful, but keep the main flow tight.
+- Make each slide clearly assignable to one presenter so all 5 team members can speak briefly.
+- Keep each presenter to about 20 to 35 seconds.
+- The final pre-demo slide should transition directly into the live demo.
+- The deck must explicitly mention the prompt strategy we chose and show the prompt itself in a concise, visual way.
+- The prompt should be presented as part of the story of how we built or shaped the solution, not as a random technical aside.
+
+Storytelling requirement:
+- The deck should tell a story with a beginning, middle, and end.
+- Beginning: crypto users and exchanges face fast-moving scam and fraud threats, and existing responses are too slow or unclear.
+- Middle: we built CryptoSecure to turn suspicious signals into fast, understandable decisions using targeted intelligence and AI-supported analysis.
+- Middle: show that we intentionally guided the product or workflow with a carefully chosen prompt, and briefly show what that prompt focused on.
+- End: CryptoSecure gives users and teams confidence, better decisions, and a path from individual protection to exchange-grade workflows.
+- Each slide should feel like the next chapter of the same narrative.
+
+Suggested slide structure:
+
+1. Title / Hook
+- Project name: CryptoSecure
+- One-line value proposition
+- Very short hook that makes the pain obvious
+- Team name and/or member names in small text
+- Speaker 1 should open with a sharp problem statement
+- This slide should feel like the first line of a story, not just a label
+
+2. The Problem
+- Show the real-world pain point in crypto scams, phishing, wallet theft, fraudulent addresses, fake support emails, or risky transactions
+- Explain who is affected: retail users, exchanges, fraud teams, support teams, etc.
+- Include 2 to 3 concrete stakes such as money lost, support burden, trust erosion, or slow investigation time
+- Make the risk feel operational and immediate, not theoretical
+- Speaker 2 should explain why this problem matters now
+- This slide should set up tension: users do not just need data, they need trustworthy decisions fast
+
+3. Our Solution
+- Explain what CryptoSecure does in one clean visual
+- Show that users can scan suspicious wallet addresses, txids, URLs, and phishing emails
+- Mention that the platform returns verdicts, flags, chain intelligence, history, and account-based usage
+- Emphasize that it helps users act faster and more safely
+- Frame the product as practical decision support, not as a black-box AI magic trick
+- Speaker 3 should explain the product simply and confidently
+- This slide should feel like the turning point in the story: here is the system that makes the chaos manageable
+
+4. Prompt + Intelligence Layer
+- Explicitly show the prompt we chose, or a clean shortened excerpt of it
+- Explain what the prompt is trying to accomplish
+- Show how the prompt shapes the product behavior, analysis style, output quality, or user-facing clarity
+- Make clear that the prompt was selected intentionally to support trust, decision support, and useful output
+- Do not dump a giant paragraph of prompt text on the slide; show a short excerpt in a highlighted code-style panel
+- If helpful, pair the prompt excerpt with 3 short bullets describing why it matters
+- Speaker 4 should explain why the prompt choice matters and how it supports the intelligence workflow
+
+5. How It Works / Technical Edge
+- Show a simple workflow or system diagram
+- Inputs: wallet address, transaction hash, suspicious URL, or .eml email
+- Processing: chain intelligence, phishing detection, account/auth layer, subscription/usage logic, saved scan history
+- Outputs: risk verdict, detailed chain context, flags, recent activity, or gated premium insights
+- Keep technical details high-level but real
+- Make sure the technical explanation sounds trustworthy to a cybersecurity audience and understandable to non-engineers
+- This slide should make the system feel real, coherent, and demo-ready
+- Speaker 5 should focus on what makes the implementation credible
+
+6. Why It Wins / Demo Transition
+- Show who would use it and why
+- Compare Free vs Pro vs Enterprise at a very high level
+- Highlight value for individuals and exchanges
+- Mention enterprise/exchange angle, fraud reduction, support savings, trust/safety benefits, or operational efficiency
+- This slide should also help justify why the product could exist beyond the hackathon
+- Make the business case legible to product and consulting-minded judges: clear users, clear pain, clear upgrade path, clear enterprise angle
+- Combine business value and demo handoff if needed to keep the deck tight
+- End with a direct transition into the live demo
+- Simple headline like "Let's see it live"
+- Include 3 things the audience should watch for in the demo
+- Example:
+  - Real risk scan result
+  - Account/profile and history
+  - Tier-based access and blurred premium insights
+- This slide should smoothly hand off to the live demo
+
+Demo guidance:
+- The demo should last about 2 to 3 minutes.
+- The deck should naturally tee up the following possible live flow:
+  - Run a risk scan on a suspicious wallet / txid / URL
+  - Show the verdict and detailed result layout
+  - Show how free-tier users see blurred premium details
+  - Log in or show the account page with scan history and subscription tier
+- Keep the demo realistic and focused on 1 clear user journey
+
+What to emphasize because of the judging panel:
+- Show that this is solving a real cybersecurity and fraud problem, not just showcasing a model.
+- Show practical usability and clean workflow, not just backend complexity.
+- Show enough AI/technical credibility to satisfy experienced technology judges without drowning the room in jargon.
+- Show that this can scale from individual users to exchange or enterprise workflows.
+- Show that the product is thoughtful about trust, risk, and actionability.
+
+Style guidance:
+- Modern, clean, cybersecurity-adjacent visual style
+- Avoid clutter, giant paragraphs, or generic corporate filler
+- Use strong section titles and minimal supporting copy
+- Prefer icons, simple diagrams, numbers, and UI screenshots/mockups over dense text
+- Use consistent colors and a clear visual identity
+- Make it look like a real startup / real product, not a school project
+
+Design and branding guidance:
+- Match the slide deck to the website’s design language as closely as possible.
+- Use the website color scheme:
+  - Primary green: #21D66F
+  - Primary dark green: #08B162
+  - Teal accent: #0B948F
+  - Light background tones: #EDEDED, #F7F7F7, #FFFFFF
+  - Text colors: #0F172A for headings, #3D4452 for body text, #6B7280 for muted text
+- Use the same overall feel as the website: clean, light, modern, trustworthy, slightly technical, not dark and not overly flashy.
+- Favor white or very light gray backgrounds with green and teal accents rather than dark cyberpunk styling.
+- If typography choices are needed, use modern sans-serif styles similar in spirit to Inter and Plus Jakarta Sans.
+- Use rounded cards, soft shadows, subtle gradients, and clean spacing similar to the website UI.
+- Use screenshots or mockups from the product where possible so the deck feels visually connected to the actual app.
+- If showing the prompt on a slide, place it inside a clean code block, terminal-style box, or product-style panel that matches the website UI.
+- Avoid generic PowerPoint templates, heavy bullet walls, or loud unrelated colors.
+- The deck should feel like it belongs to the same product family as the website.
+
+Output format:
+- First, provide the full slide-by-slide outline.
+- Then provide suggested speaker notes for each slide.
+- Then provide a recommended timing breakdown across all 5 presenters.
+- Then provide suggestions for visuals on each slide.
+- Then provide a short design direction section describing layout, color usage, typography, and how to visually present the prompt slide.
+- Keep the final result presentation-ready and concise.
+
+Important constraints:
+- Do not make the deck too long.
+- Do not overload any one person with too much speaking time.
+- Do not let the slides explain every feature; save some of that for the live demo.
+- Keep the story persuasive, quick, and easy to follow.
+- Make sure the prompt mention feels intentional and impressive, not forced or overly academic.

@@ -196,6 +196,57 @@
   line-height: 1.65;
 }
 
+.account-demo-tools {
+  display: grid;
+  gap: 14px;
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid var(--border);
+}
+
+.account-demo-tools__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.account-demo-tools__header h3 {
+  font-size: 1rem;
+}
+
+.account-tier-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.account-tier-option {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+  background: var(--bg-elevated);
+  color: var(--text-heading);
+  font-weight: 700;
+  text-transform: capitalize;
+  cursor: pointer;
+}
+
+.account-tier-option--active {
+  border-color: var(--primary);
+  background: var(--primary-lighter);
+  color: var(--primary-darkest);
+}
+
+.account-demo-message {
+  margin: 0;
+  color: var(--primary-dark);
+  font-weight: 600;
+}
+
 .account-link {
   color: var(--primary-dark);
   font-weight: 700;
@@ -282,7 +333,8 @@
   .account-hero,
   .account-empty-state,
   .account-card__header,
-  .account-pagination {
+  .account-pagination,
+  .account-demo-tools__header {
     flex-direction: column;
     align-items: flex-start;
   }

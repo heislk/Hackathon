@@ -1,11 +1,29 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
+import { parsePhoneNumberFromString } from "libphonenumber-js";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
 import GateBlur from "../components/GateBlur.jsx";
 import { useAuth } from "../context/AuthContext.jsx";
 import { useSubscription } from "../context/SubscriptionContext.jsx";
 import "../styles/risk-scan.css";
+
+const EMAIL_API_BASE = (import.meta.env.VITE_EMAIL_INTEL_URL || "").replace(/\/$/, "");
+const PHONE_API_BASE = (import.meta.env.VITE_PHONE_INTEL_URL || "/api/phone-scan").replace(/\/$/, "");
+const TRUSTED_EMAIL_DOMAINS = [
+  "coinbase.com",
+  "gemini.com",
+  "kraken.com",
+  "binance.com",
+  "robinhood.com",
+  "crypto.com",
+  "paypal.com",
+  "apple.com",
+  "google.com",
+  "microsoft.com",
+  "amazon.com",
+  "chase.com",
+];
 
 const EVM_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
 const EVM_TX_RE = /^0x[a-fA-F0-9]{64}$/;
@@ -33,6 +51,18 @@ const EMAIL_URGENCY_PATTERNS = [
 
 function uniqueStrings(values) {
   return [...new Set(values.map((value) => value.trim()).filter(Boolean))];
+}
+
+function scoreToRiskTier(score) {
+  if (score >= 0.90) return "CRITICAL";
+  if (score >= 0.75) return "HIGH";
+  if (score >= 0.50) return "MEDIUM";
+  if (score >= 0.25) return "LOW";
+  return "CLEAN";
+}
+
+function confidenceFromScore(score) {
+  return score < 0.25 || score > 0.75 ? "HIGH" : "MEDIUM";
 }
 
 function extractHeaderValue(headers, name) {
@@ -109,6 +139,32 @@ function extractAttachmentNames(headers, body) {
 function countUrgencySignals(text) {
   const lowerText = text.toLowerCase();
   return EMAIL_URGENCY_PATTERNS.reduce((count, pattern) => (lowerText.includes(pattern) ? count + 1 : count), 0);
+}
+
+function isTrustedEmailDomain(domain) {
+  if (!domain) return false;
+  return TRUSTED_EMAIL_DOMAINS.some((trusted) => domain === trusted || domain.endsWith(`.${trusted}`));
+}
+
+function extractAuthenticationState(headers) {
+  const lowerHeaders = headers.toLowerCase();
+  return {
+    spfPass: /\bspf=pass\b/.test(lowerHeaders) || /\breceived-spf:\s*pass\b/.test(lowerHeaders),
+    dkimPass: /\bdkim=pass\b/.test(lowerHeaders),
+    dmarcPass: /\bdmarc=pass\b/.test(lowerHeaders),
+  };
+}
+
+function normalizeEmailRiskScore(rawMlScore, vtScore, trustedSender, authPassed, cleanLinkProfile) {
+  if (trustedSender && authPassed && cleanLinkProfile && vtScore <= 0.25) {
+    return Math.min(rawMlScore, 0.20 + vtScore * 0.25);
+  }
+
+  if (trustedSender && authPassed && vtScore <= 0.15) {
+    return Math.min(rawMlScore, 0.35 + vtScore * 0.25);
+  }
+
+  return rawMlScore;
 }
 
 function extractTopTokens(text) {
@@ -202,8 +258,12 @@ function buildEmailDemoResult(file, rawText) {
   const urgencySignalCount = countUrgencySignals(contentText);
   const topTokens = extractTopTokens([subject, fromValue, body].filter(Boolean).join(" "));
   const hasHtmlOnlyBody = /content-type:\s*text\/html/i.test(headers) && !/content-type:\s*text\/plain/i.test(headers);
+  const authState = extractAuthenticationState(headers);
+  const trustedSenderDomain = isTrustedEmailDomain(fromDomain);
   const replyToMismatch = Boolean(fromDomain && replyToDomain && fromDomain !== replyToDomain);
-  const suspiciousSenderDomain = Boolean(fromDomain && /(?:secure|verify|support|wallet|login|alert|update|mail)/i.test(fromDomain));
+  const suspiciousSenderDomain = Boolean(
+    fromDomain && !trustedSenderDomain && /(?:secure|verify|support|wallet|login|alert|update|mail)/i.test(fromDomain)
+  );
   const mismatchedLinks = urls.some((url) => {
     try {
       const hostname = new URL(url).hostname.replace(/^www\./, "").toLowerCase();
@@ -224,24 +284,31 @@ function buildEmailDemoResult(file, rawText) {
   riskPoints += suspiciousSenderDomain ? 1 : 0;
   riskPoints += mismatchedLinks ? 2 : 0;
 
-  let riskTier = "LOW";
-  if (riskPoints >= 7) riskTier = "CRITICAL";
-  else if (riskPoints >= 5) riskTier = "HIGH";
-  else if (riskPoints >= 3) riskTier = "MEDIUM";
-
   const checkedItems = Math.max(1, urls.length + domains.length + cryptoAddresses.length + attachmentNames.length);
-  const maliciousHits = Math.max(0, riskPoints >= 5 ? Math.min(checkedItems, Math.ceil(riskPoints / 2)) : riskPoints >= 3 ? 1 : 0);
-  const mlScore = Math.min(0.98, 0.12 + riskPoints * 0.11 + Math.min(0.12, urls.length * 0.02));
-  const vtScore = Math.min(1, maliciousHits / checkedItems);
-  const hybridScore = Math.min(0.99, (mlScore + vtScore) / 2 + (riskPoints >= 5 ? 0.08 : 0));
-  const confidence = Math.min(0.98, 0.55 + riskPoints * 0.06 + Math.min(0.12, urls.length * 0.02));
+  const rawMlScore = Math.min(0.98, 0.12 + riskPoints * 0.11 + Math.min(0.12, urls.length * 0.02));
+  const hasAuthenticationPass =
+    authState.spfPass && authState.dkimPass && authState.dmarcPass;
+  const cleanLinkProfile = !mismatchedLinks && !replyToMismatch && !replyToDomain;
+  const vtScore = Math.min(1, checkedItems > 0 ? (mismatchedLinks || suspiciousSenderDomain || riskPoints >= 5 ? Math.min(checkedItems, Math.ceil(riskPoints / 2)) : 0) / checkedItems : 0);
+  const mlScore = normalizeEmailRiskScore(
+    rawMlScore,
+    vtScore,
+    trustedSenderDomain,
+    hasAuthenticationPass,
+    cleanLinkProfile
+  );
+  const hybridScore = Math.min(0.99, Math.max(mlScore, vtScore));
+  const riskTier = scoreToRiskTier(hybridScore);
+  const confidence = confidenceFromScore(hybridScore);
+  const virusTotalFlagged = vtScore >= 0.25;
+  const virusTotalHits = virusTotalFlagged ? Math.max(1, Math.round(vtScore * checkedItems)) : 0;
 
   const threatCategories = uniqueStrings([
-    urls.length ? "phishing" : "",
-    cryptoAddresses.length ? "wallet-drain" : "",
-    attachmentNames.length ? "malicious-attachment" : "",
-    replyToMismatch || mismatchedLinks ? "credential-theft" : "",
-    riskTier === "CRITICAL" ? "high-confidence threat" : "",
+    virusTotalFlagged && urls.length ? "phishing" : "",
+    virusTotalFlagged && cryptoAddresses.length ? "wallet-drain" : "",
+    virusTotalFlagged && attachmentNames.length ? "malicious-attachment" : "",
+    virusTotalFlagged && (replyToMismatch || mismatchedLinks) ? "credential-theft" : "",
+    virusTotalFlagged && riskTier === "CRITICAL" ? "high-confidence threat" : "",
   ]);
 
   return {
@@ -250,7 +317,7 @@ function buildEmailDemoResult(file, rawText) {
     ml_score: Number(mlScore.toFixed(4)),
     vt_score: Number(vtScore.toFixed(4)),
     hybrid_score: Number(hybridScore.toFixed(4)),
-    confidence: Number(confidence.toFixed(2)),
+    confidence,
     extracted_features: {
       urls,
       domains,
@@ -260,24 +327,37 @@ function buildEmailDemoResult(file, rawText) {
     virus_total: {
       configured: true,
       checked_items: checkedItems,
-      any_malicious: maliciousHits > 0,
+      any_malicious: virusTotalFlagged,
       all_threat_categories: threatCategories.length ? threatCategories : ["none"],
     },
     explanation: {
       top_tokens: topTokens,
-      spf_fail: riskPoints >= 4,
-      dkim_fail: riskPoints >= 5,
-      dmarc_fail: riskPoints >= 6,
+      trusted_sender_domain: trustedSenderDomain,
+      spf_fail: !authState.spfPass,
+      dkim_fail: !authState.dkimPass,
+      dmarc_fail: !authState.dmarcPass,
       has_html_only_body: hasHtmlOnlyBody,
       has_mismatched_links: mismatchedLinks,
       reply_to_mismatch: replyToMismatch,
       suspicious_sender_domain: suspiciousSenderDomain,
       urgency_signal_count: urgencySignalCount,
-      virus_total_flagged: maliciousHits > 0,
-      virus_total_hits: maliciousHits,
+      virus_total_flagged: virusTotalFlagged,
+      virus_total_hits: virusTotalHits,
     },
-    is_phishing: riskTier === "HIGH" || riskTier === "CRITICAL",
+    is_phishing: hybridScore >= 0.5,
   };
+}
+
+function isImageFile(file) {
+  if (!file) return false;
+  return Boolean(file.type?.startsWith("image/") || /\.(png|jpe?g|gif|webp|heic|heif)$/i.test(file.name || ""));
+}
+
+function normalizePhoneNumber(rawValue) {
+  const trimmed = rawValue.trim();
+  if (!trimmed) return null;
+  const parsed = parsePhoneNumberFromString(trimmed, "US");
+  return parsed || null;
 }
 
 function isUrlLike(value) {
@@ -325,6 +405,8 @@ function formatKindLabel(kind) {
   if (kind === "address") return "Wallet address";
   if (kind === "url") return "URL / domain";
   if (kind === "file") return "Email file";
+  if (kind === "phone") return "SMS / phone";
+  if (kind === "phone-file") return "Phone screenshot";
   return "Unverified input";
 }
 
@@ -349,6 +431,9 @@ function summarizeEmailFindings(data) {
   const features = data?.extracted_features ?? {};
   const reasons = [];
 
+  if (explanation.trusted_sender_domain && !(explanation.spf_fail || explanation.dkim_fail || explanation.dmarc_fail)) {
+    reasons.push("The sender domain is trusted and the message passed authentication checks.");
+  }
   if (explanation.has_mismatched_links) {
     reasons.push("The message contains links that do not appear to match where they really send you.");
   }
@@ -365,7 +450,11 @@ function summarizeEmailFindings(data) {
     reasons.push("The sender domain looks suspicious or inconsistent with a real exchange support domain.");
   }
   if ((features.urls?.length ?? 0) > 0) {
-    reasons.push(`It includes ${features.urls.length} link${features.urls.length === 1 ? "" : "s"}, which increases the chance of redirecting to a phishing page.`);
+    if (explanation.trusted_sender_domain && !(explanation.has_mismatched_links || explanation.reply_to_mismatch || explanation.spf_fail || explanation.dkim_fail || explanation.dmarc_fail)) {
+      reasons.push(`It includes ${features.urls.length} link${features.urls.length === 1 ? "" : "s"}, but the sender looks trusted and the message passed authentication.`);
+    } else {
+      reasons.push(`It includes ${features.urls.length} link${features.urls.length === 1 ? "" : "s"}, which increases the chance of redirecting to a phishing page.`);
+    }
   }
   if (explanation.virus_total_flagged) {
     reasons.push("External threat intelligence also flagged one or more of the indicators in this email.");
@@ -376,6 +465,105 @@ function summarizeEmailFindings(data) {
   }
 
   return reasons.slice(0, 4);
+}
+
+function mapRiskTierToVerdict(riskTier) {
+  if (riskTier === "HIGH" || riskTier === "CRITICAL") return "High Risk";
+  if (riskTier === "MEDIUM") return "Suspicious";
+  if (riskTier === "LOW") return "Needs Review";
+  return "Likely Safe";
+}
+
+function summarizePhoneFindings(data) {
+  const explanation = data?.explanation ?? data?.signals ?? {};
+  const features = data?.extracted_features ?? data?.features ?? {};
+  const phone = data?.phone ?? {};
+  const reasons = [];
+
+  if (explanation?.has_urls || (features?.urls?.length ?? 0) > 0) {
+    reasons.push("The message contains URLs, which increases the chance that it is a phishing or smishing lure.");
+  }
+  if (explanation?.urgency_signal_count > 0) {
+    reasons.push("The message uses urgent language or pressure tactics, which is common in scam text messages.");
+  }
+  if (explanation?.keyword_hits?.some((token) => ["verify", "confirm", "locked", "suspended", "payment", "refund", "delivery", "wallet"].includes(token))) {
+    reasons.push("The message contains common scam trigger words tied to account access, delivery issues, payments, or crypto wallets.");
+  }
+  if (explanation?.keyword_hits?.some((token) => ["otp", "one-time code", "verify", "confirm"].includes(token))) {
+    reasons.push("The message appears to involve verification, account recovery, or one-time-code style language.");
+  }
+  if (phone?.risk_notes?.length) {
+    reasons.push(`The sender number lookup returned risk notes: ${phone.risk_notes.slice(0, 2).join(", ")}.`);
+  }
+  if (explanation?.ocr_confidence && explanation.ocr_confidence < 0.75) {
+    reasons.push("OCR confidence was not perfect, so the screenshot should be reviewed carefully.");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("The scan did not find strong smishing signals, but the number and message should still be verified carefully.");
+  }
+
+  return reasons.slice(0, 4);
+}
+
+function formatPhoneDisplayNumber(rawValue, parsedPhone) {
+  if (parsedPhone?.formatInternational) {
+    return parsedPhone.formatInternational();
+  }
+
+  if (parsedPhone?.number) {
+    return parsedPhone.number;
+  }
+
+  const trimmed = rawValue?.trim();
+  return trimmed || "Unknown";
+}
+
+function buildPhoneResponsePayload(data, { phoneNumber, phoneMessage, phoneImage, normalizedPhone }) {
+  const displayValue = formatPhoneDisplayNumber(
+    phoneNumber || phoneMessage || phoneImage?.name || "Phone evidence",
+    normalizedPhone
+  );
+  const fallbackPhoneData = data?.phoneData ?? data?.analysis ?? data;
+  const fallbackVerdict = data?.verdict ?? mapRiskTierToVerdict(fallbackPhoneData?.risk_tier ?? fallbackPhoneData?.riskTier);
+  const providedResults = Array.isArray(data?.results) ? data.results.filter(Boolean) : [];
+  const results =
+    providedResults.length > 0
+      ? providedResults
+      : [
+          {
+            source: "phone-intelligence",
+            kind: phoneImage ? "phone-file" : "phone",
+            value: displayValue,
+            verdict: fallbackVerdict,
+            phoneData: fallbackPhoneData,
+          },
+        ];
+
+  return {
+    ...data,
+    mode: data?.mode ?? "phone",
+    scannedAt: data?.scannedAt ?? data?.processed_at ?? data?.processedAt ?? new Date().toISOString(),
+    summary: data?.summary ?? {
+      total: results.length,
+      safe: results.filter((result) => result.verdict === "Likely Safe").length,
+      needsReview: results.filter((result) => result.verdict === "Needs Review" || result.verdict === "Suspicious").length,
+      highRisk: results.filter((result) => result.verdict === "High Risk").length,
+      phoneTargets: phoneNumber ? 1 : 0,
+      messageTargets: phoneMessage ? 1 : 0,
+      screenshotTargets: phoneImage ? 1 : 0,
+      successful: results.length,
+    },
+    results: results.map((result) => ({
+      source: result.source ?? "phone-intelligence",
+      kind: result.kind ?? (phoneImage ? "phone-file" : "phone"),
+      value: result.value ?? displayValue,
+      verdict: result.verdict ?? fallbackVerdict,
+      phoneData: result.phoneData ?? fallbackPhoneData,
+      isMalicious: result.isMalicious ?? (result.verdict === "High Risk" || result.verdict === "Suspicious"),
+      error: result.error,
+    })),
+  };
 }
 
 function formatDateTime(value) {
@@ -825,6 +1013,166 @@ function renderEmailResult(result) {
   );
 }
 
+function renderPhoneResult(result) {
+  const data = result.phoneData ?? result.smsData ?? result.analysis ?? result.data ?? {};
+  const features = data?.extracted_features ?? data?.features ?? {};
+  const signals = data?.explanation ?? data?.signals ?? {};
+  const ocr = data?.ocr ?? data?.ocr_result ?? {};
+  const phone = data?.phone ?? {};
+  const summaryPoints = summarizePhoneFindings(data);
+  const urls = features?.urls ?? [];
+  const domains = features?.domains ?? [];
+  const brands = features?.brands ?? features?.impersonated_brands ?? [];
+  const senderNumbers =
+    features?.sender_numbers ??
+    features?.sender_ids ??
+    [features?.sender_number, phone?.formatted_international, phone?.normalized_e164, ...(features?.phone_numbers ?? [])].filter(Boolean);
+  const phoneNumber =
+    phone?.normalized_e164 ??
+    phone?.formatted_international ??
+    features?.sender_number ??
+    data?.phone_number ??
+    result.value;
+  const displayMessage = features?.message_preview ?? data?.message ?? data?.normalized_message ?? data?.text ?? ocr?.text ?? "";
+  const screenshotLabel = ocr?.image_name ?? data?.image_name ?? data?.screenshot_name ?? (result.kind === "phone-file" ? "Uploaded image" : "Not uploaded");
+  const screenshotType = data?.image_detected ?? (result.kind === "phone-file" ? "Image" : "Text");
+  const messageLength = signals?.message_length ?? features?.message_length ?? (displayMessage ? displayMessage.length : null);
+  const modelScore = data?.model_probability ?? data?.ml_score ?? data?.probability ?? data?.sms_score ?? data?.scam_score;
+
+  return (
+    <div className="risk-result__content">
+      <section className="risk-plain-language">
+        <h4>Why this looks {result.verdict === "Likely Safe" ? "safer" : "suspicious"}</h4>
+        <ul>
+          {summaryPoints.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      </section>
+
+      <div className="risk-result__grid risk-result__grid--phone">
+        <div>
+          <span>Input type</span>
+          <strong>{formatKindLabel(result.kind)}</strong>
+        </div>
+        <div>
+          <span>Risk tier</span>
+          <strong>{data?.risk_tier ?? data?.riskTier ?? "Unknown"}</strong>
+        </div>
+        <div>
+          <span>Model score</span>
+          <strong>{formatScore(modelScore)}</strong>
+        </div>
+        <div>
+          <span>Confidence</span>
+          <strong>{data?.confidence ?? signals?.confidence ?? "Unknown"}</strong>
+        </div>
+        <div>
+          <span>OCR confidence</span>
+          <strong>{formatScore(signals?.ocr_confidence ?? ocr?.confidence ?? data?.ocr_confidence)}</strong>
+        </div>
+        <div>
+          <span>Message length</span>
+          <strong>{messageLength ?? "Unknown"}</strong>
+        </div>
+      </div>
+
+      <div className="risk-result__split">
+        <GateBlur featureKey="riskFlags" label="Detailed phone signals">
+          <section>
+            <h4>Message and sender</h4>
+            <div className="risk-data-list">
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Sender</strong>
+                  <p>{phoneNumber ?? "Unknown"}</p>
+                </div>
+                <span>{phone?.carrier ?? "Lookup"}</span>
+              </div>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Region</strong>
+                  <p>{phone?.region_code ?? "Unknown"}</p>
+                </div>
+                <span>{phone?.location ?? "Country / location"}</span>
+              </div>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Number type</strong>
+                  <p>{phone?.number_type ?? "Unknown"}</p>
+                </div>
+                <span>{phone?.valid ? "Valid" : "Unverified"}</span>
+              </div>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Screenshot</strong>
+                  <p>{screenshotLabel}</p>
+                </div>
+                <span>{screenshotType}</span>
+              </div>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Message preview</strong>
+                  <p>{displayMessage ? displayMessage.slice(0, 180) : "No message text returned."}</p>
+                </div>
+                <span>{displayMessage ? `${displayMessage.length} chars` : "Preview"}</span>
+              </div>
+            </div>
+            {ocr?.text ? (
+              <details className="risk-raw risk-raw--compact">
+                <summary>Show OCR text</summary>
+                <pre>{ocr.text}</pre>
+              </details>
+            ) : null}
+          </section>
+        </GateBlur>
+
+        <GateBlur featureKey="riskFlags" label="Extracted phone indicators">
+          <section>
+            <h4>Extracted indicators</h4>
+            <div className="risk-pill-list">
+              {urls.length ? urls.slice(0, 4).map((url) => <span key={url}>{url}</span>) : <span>No URLs found</span>}
+              {brands.length ? brands.slice(0, 4).map((brand) => <span key={brand}>{brand}</span>) : null}
+              {senderNumbers.length ? senderNumbers.slice(0, 4).map((sender) => <span key={sender}>{sender}</span>) : null}
+            </div>
+            <div className="risk-flags">
+              <strong>Signals</strong>
+              <ul>
+                <li>{signals?.has_urls || urls.length ? "URL present" : "No URL present"}</li>
+                <li>{signals?.urgency_signal_count > 0 ? "Urgency language detected" : "No urgency language reported"}</li>
+                <li>{signals?.keyword_hits?.length ? `Keyword hits: ${signals.keyword_hits.join(", ")}` : "No keyword hits reported"}</li>
+                <li>{phone?.risk_notes?.length ? phone.risk_notes.join(", ") : "No number lookup risk notes"}</li>
+                <li>{signals?.sender_voip ? "VOIP sender detected" : "No VOIP signal detected"}</li>
+                <li>{signals?.ocr_confidence && signals.ocr_confidence < 0.75 ? "OCR confidence is low" : "OCR confidence acceptable"}</li>
+              </ul>
+            </div>
+            {domains.length ? (
+              <div className="risk-data-list">
+                {domains.slice(0, 4).map((domain) => (
+                  <div className="risk-data-list__row" key={domain}>
+                    <div>
+                      <strong>Domain</strong>
+                      <p>{domain}</p>
+                    </div>
+                    <span>Indicator</span>
+                  </div>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        </GateBlur>
+      </div>
+
+      <GateBlur featureKey="fullChainData" label="Full phone payload">
+        <details className="risk-raw">
+          <summary>Show raw phone-intelligence output</summary>
+          <pre>{JSON.stringify(data, null, 2)}</pre>
+        </details>
+      </GateBlur>
+    </div>
+  );
+}
+
 function UpgradeModal({ title, body }) {
   return (
     <div className="risk-modal" role="dialog" aria-modal="true" aria-label={title}>
@@ -867,6 +1215,8 @@ function ResultCard({ result }) {
         <ChainResultContent result={result} />
       ) : result.source === "email-intelligence" ? (
         renderEmailResult(result)
+      ) : result.source === "phone-intelligence" ? (
+        renderPhoneResult(result)
       ) : (
         renderPhishingResult(result)
       )}
@@ -883,15 +1233,40 @@ function RiskScan() {
   const [feedback, setFeedback] = useState("");
   const [isScanning, setIsScanning] = useState(false);
   const [upgradePrompt, setUpgradePrompt] = useState(null);
+  const [phoneNumber, setPhoneNumber] = useState("");
+  const [phoneMessage, setPhoneMessage] = useState("");
+  const [phoneImage, setPhoneImage] = useState(null);
+  const [phoneFeedback, setPhoneFeedback] = useState("");
+  const normalizedPhone = useMemo(() => normalizePhoneNumber(phoneNumber), [phoneNumber]);
+  const phonePreviewUrl = useMemo(() => {
+    if (!phoneImage || !isImageFile(phoneImage)) return "";
+    return URL.createObjectURL(phoneImage);
+  }, [phoneImage]);
+
+  useEffect(() => {
+    return () => {
+      if (phonePreviewUrl) {
+        URL.revokeObjectURL(phonePreviewUrl);
+      }
+    };
+  }, [phonePreviewUrl]);
 
   const parsedEntries = useMemo(() => parseTargets(chainList), [chainList]);
   const validEntries = parsedEntries.filter((entry) => entry.kind !== "unknown");
   const unknownEntries = parsedEntries.filter((entry) => entry.kind === "unknown");
   const hasSelectedEmailFile = isEmlFile(file);
+  const hasPhonePayload = Boolean(phoneNumber.trim() || phoneMessage.trim() || phoneImage);
+  const phoneDisplayValue = formatPhoneDisplayNumber(phoneNumber, normalizedPhone);
 
   const handleFileChange = (e) => {
     setFile(e.target.files?.[0] ?? null);
     setFeedback("");
+  };
+
+  const handlePhoneFileChange = (e) => {
+    const selected = e.target.files?.[0] ?? null;
+    setPhoneImage(selected);
+    setPhoneFeedback("");
   };
 
   const persistResults = async (results) => {
@@ -904,6 +1279,21 @@ function RiskScan() {
           result.verdict,
           result.isMalicious ?? result.emailData?.is_phishing ?? result.phishingData?.isPhishing ?? false,
           result.chainData || result.emailData || result.phishingData || null,
+        )
+      )
+    );
+  };
+
+  const persistPhoneResults = async (results) => {
+    if (!user || !Array.isArray(results) || results.length === 0) return;
+    await Promise.allSettled(
+      results.map((result) =>
+        saveScan(
+          result.value,
+          result.kind,
+          result.verdict,
+          result.isMalicious ?? false,
+          result.phoneData || null,
         )
       )
     );
@@ -925,8 +1315,39 @@ function RiskScan() {
       setUpgradePrompt(null);
 
       try {
-        const rawText = await file.text();
-        const data = buildEmailDemoResult(file, rawText);
+        let data = null;
+        let backendFailed = false;
+
+        if (EMAIL_API_BASE) {
+          try {
+            const formData = new FormData();
+            formData.append("file", file);
+
+            const response = await fetch(`${EMAIL_API_BASE}/scan`, {
+              method: "POST",
+              body: formData,
+            });
+
+            if (response.ok) {
+              data = await response.json();
+            } else {
+              const detail = await response.json().catch(() => null);
+              backendFailed = true;
+              setFeedback(detail?.detail || `Email scan failed with ${response.status}; using local fallback.`);
+            }
+          } catch (error) {
+            backendFailed = true;
+            setFeedback(error instanceof Error ? error.message : "Email backend unavailable; using local fallback.");
+          }
+        }
+
+        if (!data) {
+          const rawText = await file.text();
+          data = buildEmailDemoResult(file, rawText);
+          if (!backendFailed) {
+            setFeedback("Used local trust-aware email fallback.");
+          }
+        }
 
         const emailResult = {
           source: "email-intelligence",
@@ -1013,9 +1434,70 @@ function RiskScan() {
     }
   };
 
+  const handlePhoneScan = async () => {
+    if (!hasPhonePayload) {
+      setPhoneFeedback("Enter a phone number, message, or attach a screenshot to run the phone-intelligence scan.");
+      return;
+    }
+
+    const projectedScanUsage = usage.weeklyScans + 1;
+    if (user && (!canScan() || (limits.weeklyScans !== Infinity && projectedScanUsage > limits.weeklyScans))) {
+      setUpgradePrompt({
+        title: "Weekly scan limit reached",
+        body: "Your Free plan has used all available live scans for this week. Upgrade to Pro or Enterprise to keep checking phone numbers and message screenshots.",
+      });
+      return;
+    }
+
+    setIsScanning(true);
+    setFeedback("");
+    setPhoneFeedback("");
+    setScanResponse(null);
+    setUpgradePrompt(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("phone_number", phoneNumber.trim());
+      formData.append("normalized_phone_number", normalizedPhone?.number || "");
+      formData.append("message", phoneMessage.trim());
+      formData.append("mode", "phone");
+      if (normalizedPhone?.country) {
+        formData.append("country", normalizedPhone.country);
+      }
+      if (phoneImage) {
+        formData.append("image", phoneImage);
+        formData.append("screenshot_name", phoneImage.name);
+      }
+
+      const response = await fetch(`${PHONE_API_BASE}/scan`, {
+        method: "POST",
+        body: formData,
+      });
+
+      const data = await response.json();
+      if (!response.ok) {
+        throw new Error(data?.error || "Phone scan failed");
+      }
+
+      const responsePayload = buildPhoneResponsePayload(data, {
+        phoneNumber: phoneNumber.trim(),
+        phoneMessage: phoneMessage.trim(),
+        phoneImage,
+        normalizedPhone,
+      });
+
+      setScanResponse(responsePayload);
+      void persistPhoneResults(responsePayload.results);
+    } catch (error) {
+      setPhoneFeedback(error instanceof Error ? error.message : "Phone scan failed");
+    } finally {
+      setIsScanning(false);
+    }
+  };
+
   const summary = scanResponse?.summary;
   const primaryResult = scanResponse?.results?.[0];
-  const overallVerdict = scanResponse?.mode === "email" ? primaryResult?.verdict ?? "Likely Safe" : getOverallVerdict(summary);
+  const overallVerdict = primaryResult?.verdict ?? getOverallVerdict(summary);
   const scanLimitLabel = limits.weeklyScans === Infinity ? "Unlimited" : `${usage.weeklyScans}/${limits.weeklyScans}`;
   const emailLimitLabel = limits.monthlyEmails === Infinity ? "Unlimited" : `${usage.monthlyEmails}/${limits.monthlyEmails}`;
 
@@ -1028,18 +1510,21 @@ function RiskScan() {
             <h1>
               Upload the evidence.
               <br />
-              Or paste the chain intel.
+              Or paste the chain intel or phone evidence.
             </h1>
             <p>
               Submit a suspicious address, txid, or URL, or drop in a real .EML file.
-              Chain targets run through the live chain-intelligence stack, while email
-              files are analyzed locally in the browser and render on this page.
+              You can also paste a phone number plus message or upload a screenshot of the
+              conversation. Chain targets run through the live chain-intelligence stack,
+              while email files and phone evidence render on this page.
             </p>
             <div className="risk-hero__chips">
               <span>Arkham enrichment</span>
               <span>Wallet checks</span>
               <span>Txid review</span>
               <span>Phishing detection</span>
+              <span>SMS / smishing</span>
+              <span>OCR screenshots</span>
               <span>Live output</span>
             </div>
             <div className="risk-tier-strip">
@@ -1057,86 +1542,165 @@ function RiskScan() {
               </div>
             </div>
           </div>
-          <div className="risk-upload-card">
-            <div className="risk-upload-card__header">
-              <span className="risk-upload-card__badge">Secure intake</span>
-              <h2>Start your scan</h2>
-              <p>Paste comma-separated addresses, txids, or URLs for the live chain scan, or select a real .EML file for local email analysis.</p>
-            </div>
-
-            <label className="risk-upload-field">
-              <span>Select .EML file</span>
-              <div className="risk-upload-dropzone">
-                <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
-                  <path
-                    d="M16 4v12m0 0l-5-5m5 5l5-5M6 22v2a2 2 0 002 2h16a2 2 0 002-2v-2"
-                    stroke="currentColor"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  />
-                </svg>
-                <span>Drag & drop or click to select a real .EML</span>
-                <input type="file" accept=".eml,message/rfc822" onChange={handleFileChange} />
+          <div className="risk-hero__stack">
+            <div className="risk-upload-card">
+              <div className="risk-upload-card__header">
+                <span className="risk-upload-card__badge">Secure intake</span>
+                <h2>Start your scan</h2>
+                <p>Paste comma-separated addresses, txids, or URLs for the live chain scan, or select a real .EML file for local email analysis.</p>
               </div>
-            </label>
 
-            <label className="risk-text-field">
-              <span>Paste wallet addresses, txids, or URLs</span>
-              <textarea
-                value={chainList}
-                onChange={(e) => setChainList(e.target.value)}
-                placeholder="0x1234...abcd, bc1q..., 0xabc...1234, f4184fc5..., https://example.com"
-                rows={5}
-              />
-              <small>Separate each item with a comma. Unknown inputs are listed but not scanned.</small>
-            </label>
+              <label className="risk-upload-field">
+                <span>Select .EML file</span>
+                <div className="risk-upload-dropzone">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <path
+                      d="M16 4v12m0 0l-5-5m5 5l5-5M6 22v2a2 2 0 002 2h16a2 2 0 002-2v-2"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>Drag & drop or click to select a real .EML</span>
+                  <input type="file" accept=".eml,message/rfc822" onChange={handleFileChange} />
+                </div>
+              </label>
 
-            <div className="risk-upload-meta">
-              <div>
-                <span className="risk-upload-meta__label">Selected file</span>
-                <strong>{file ? file.name : "No file selected yet"}</strong>
+              <label className="risk-text-field">
+                <span>Paste wallet addresses, txids, or URLs</span>
+                <textarea
+                  value={chainList}
+                  onChange={(e) => setChainList(e.target.value)}
+                  placeholder="0x1234...abcd, bc1q..., 0xabc...1234, f4184fc5..., https://example.com"
+                  rows={5}
+                />
+                <small>Separate each item with a comma. Unknown inputs are listed but not scanned.</small>
+              </label>
+
+              <div className="risk-upload-meta">
+                <div>
+                  <span className="risk-upload-meta__label">Selected file</span>
+                  <strong>{file ? file.name : "No file selected yet"}</strong>
+                </div>
+                <div>
+                  <span className="risk-upload-meta__label">Parsed targets</span>
+                  <strong>{validEntries.length ? `${validEntries.length} ready` : "No live targets yet"}</strong>
+                </div>
               </div>
-              <div>
-                <span className="risk-upload-meta__label">Parsed targets</span>
-                <strong>{validEntries.length ? `${validEntries.length} ready` : "No live targets yet"}</strong>
-              </div>
-            </div>
 
-            {parsedEntries.length > 0 && (
-              <div className="risk-target-list" aria-live="polite">
-                {parsedEntries.map((entry) => (
-                  <div className="risk-target-list__item" key={`${entry.kind}-${entry.value}`}>
-                    <div>
-                      <span className="risk-target-list__eyebrow">{formatKindLabel(entry.kind)}</span>
-                      <strong>{entry.value}</strong>
+              {parsedEntries.length > 0 && (
+                <div className="risk-target-list" aria-live="polite">
+                  {parsedEntries.map((entry) => (
+                    <div className="risk-target-list__item" key={`${entry.kind}-${entry.value}`}>
+                      <div>
+                        <span className="risk-target-list__eyebrow">{formatKindLabel(entry.kind)}</span>
+                        <strong>{entry.value}</strong>
+                      </div>
+                      <div className="risk-target-list__tags">
+                        <span>{entry.chain}</span>
+                        <span>{entry.display}</span>
+                      </div>
                     </div>
-                    <div className="risk-target-list__tags">
-                      <span>{entry.chain}</span>
-                      <span>{entry.display}</span>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
 
-            {unknownEntries.length > 0 && (
-              <p className="risk-feedback">
-                {unknownEntries.length} pasted value{unknownEntries.length === 1 ? "" : "s"} could not be classified as an address, txid, or URL.
+              {unknownEntries.length > 0 && (
+                <p className="risk-feedback">
+                  {unknownEntries.length} pasted value{unknownEntries.length === 1 ? "" : "s"} could not be classified as an address, txid, or URL.
+                </p>
+              )}
+
+              {feedback && <p className="risk-feedback">{feedback}</p>}
+
+              <button className="btn btn--primary btn--full" onClick={handleScan} disabled={isScanning}>
+                {isScanning ? "Scanning..." : hasSelectedEmailFile ? "Scan EML" : "Run Live Scan"}
+              </button>
+
+              <p className="risk-upload-note">
+                {user
+                  ? "Signed-in scans are saved to your account and count against your current tier limits."
+                  : "You can scan as a guest, but history and tracked limits unlock after you create an account."}
               </p>
-            )}
+            </div>
+            <div className="risk-phone-card">
+              <div className="risk-upload-card__header">
+                <span className="risk-upload-card__badge">Phone intelligence</span>
+                <h2>Check a number or text message</h2>
+                <p>Paste the sender phone number and message, or upload a screenshot/photo so the phone-intelligence backend can OCR and score it.</p>
+              </div>
 
-            {feedback && <p className="risk-feedback">{feedback}</p>}
+              <label className="risk-phone-field">
+                <span>Phone number</span>
+                <input
+                  type="text"
+                  value={phoneNumber}
+                  onChange={(e) => setPhoneNumber(e.target.value)}
+                  placeholder="+1 (555) 555-5555"
+                  autoComplete="tel"
+                  inputMode="tel"
+                />
+                <small>{normalizedPhone ? `Parsed as ${phoneDisplayValue}${normalizedPhone.country ? ` • ${normalizedPhone.country}` : ""}` : "Paste the sender number as-is. We normalize it before sending to the backend."}</small>
+              </label>
 
-            <button className="btn btn--primary btn--full" onClick={handleScan} disabled={isScanning}>
-              {isScanning ? "Scanning..." : hasSelectedEmailFile ? "Scan EML" : "Run Live Scan"}
-            </button>
+              <label className="risk-text-field">
+                <span>Message text</span>
+                <textarea
+                  value={phoneMessage}
+                  onChange={(e) => setPhoneMessage(e.target.value)}
+                  placeholder="Your package is on hold. Verify your address now: https://example.com"
+                  rows={5}
+                />
+                <small>The backend can use the typed message, OCR text from screenshots, or both.</small>
+              </label>
 
-            <p className="risk-upload-note">
-              {user
-                ? "Signed-in scans are saved to your account and count against your current tier limits."
-                : "You can scan as a guest, but history and tracked limits unlock after you create an account."}
-            </p>
+              <label className="risk-upload-field">
+                <span>Phone screenshot</span>
+                <div className="risk-upload-dropzone risk-upload-dropzone--image">
+                  <svg width="32" height="32" viewBox="0 0 32 32" fill="none" aria-hidden="true">
+                    <path
+                      d="M8 6h16a2 2 0 012 2v16a2 2 0 01-2 2H8a2 2 0 01-2-2V8a2 2 0 012-2Zm3 4h10m-10 4h10m-10 4h6"
+                      stroke="currentColor"
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                  <span>Drop a screenshot or phone photo, or click to attach</span>
+                  <input type="file" accept="image/*,.heic,.heif" onChange={handlePhoneFileChange} />
+                </div>
+              </label>
+
+              <div className="risk-phone-preview">
+                <div>
+                  <span className="risk-upload-meta__label">Selected image</span>
+                  <strong>{phoneImage ? phoneImage.name : "No screenshot selected yet"}</strong>
+                </div>
+                <div>
+                  <span className="risk-upload-meta__label">Normalized number</span>
+                  <strong>{normalizedPhone ? phoneDisplayValue : "Waiting on a number"}</strong>
+                </div>
+              </div>
+
+              {phonePreviewUrl ? (
+                <div className="risk-phone-preview__image">
+                  <img src={phonePreviewUrl} alt="Selected phone screenshot preview" />
+                </div>
+              ) : null}
+
+              {phoneFeedback ? <p className="risk-feedback">{phoneFeedback}</p> : null}
+
+              <button className="btn btn--primary btn--full" onClick={handlePhoneScan} disabled={isScanning}>
+                {isScanning ? "Scanning..." : "Run Phone Scan"}
+              </button>
+
+              <p className="risk-upload-note">
+                {user
+                  ? "Phone scans are stored in your account history when you are signed in."
+                  : "Phone scans still run as a guest, but saving and usage tracking unlock after you create an account."}
+              </p>
+            </div>
           </div>
         </section>
 
@@ -1146,6 +1710,7 @@ function RiskScan() {
             <h3>Useful evidence for a stronger review</h3>
             <ul className="risk-list">
               <li>Suspicious emails (.EML) for email intelligence</li>
+              <li>Phone numbers, SMS threads, or message screenshots for smishing review</li>
               <li>Wallet addresses, transaction hashes, or contract URLs</li>
               <li>PDFs, links, or token approval prompts that feel off</li>
               <li>Anything that pressured you to act fast or bypass normal checks</li>
@@ -1164,8 +1729,8 @@ function RiskScan() {
                   <p>Balances, transaction history, and recent activity are rendered right on the page.</p>
                 </div>
                 <div>
-                  <strong>Email intelligence</strong>
-                  <p>Real .EML uploads are parsed locally so the demo stays self-contained and still renders the full result.</p>
+                  <strong>Email and phone intelligence</strong>
+                  <p>Real .EML uploads are parsed locally, and pasted SMS evidence or screenshots can flow into the phone-intelligence backend for OCR and smishing scoring.</p>
                 </div>
               </div>
             </article>
@@ -1192,6 +1757,15 @@ function RiskScan() {
                     <StatCard label="URLs" value={scanResponse.results?.[0]?.emailData?.extracted_features?.urls?.length ?? 0} hint="Safe indicators" />
                     <StatCard label="Crypto addresses" value={scanResponse.results?.[0]?.emailData?.extracted_features?.crypto_addresses?.length ?? 0} hint="Safe indicators" />
                   </>
+                ) : scanResponse.mode === "phone" ? (
+                  <>
+                    <StatCard label="Total targets" value={summary?.total ?? 0} hint="Phone messages or screenshots" />
+                    <StatCard label="Safe" value={summary?.safe ?? 0} hint="Low-risk signals" />
+                    <StatCard label="Needs review" value={summary?.needsReview ?? 0} hint="Mixed or partial signals" />
+                    <StatCard label="High risk" value={summary?.highRisk ?? 0} hint="Likely scam text" />
+                    <StatCard label="Phone inputs" value={summary?.phoneTargets ?? 1} hint="Numbers supplied" />
+                    <StatCard label="Screenshot inputs" value={summary?.screenshotTargets ?? 0} hint="OCR-assisted" />
+                  </>
                 ) : (
                   <>
                     <StatCard label="Total targets" value={summary?.total ?? 0} hint="Comma-separated inputs" />
@@ -1213,7 +1787,9 @@ function RiskScan() {
                       <li key={`${result.value}-${result.source}`}>
                         {result.source === "chain-intelligence"
                           ? result.chainData?.provenance?.providersUsed?.join(", ") || "No providers returned"
-                          : "DistilBERT phishing model + VirusTotal"}
+                          : result.source === "phone-intelligence"
+                            ? "Phone classifier + OCR + phone-number enrichment"
+                            : "Email phishing model + local indicator analysis"}
                       </li>
                     ))}
                   </ul>
@@ -1223,7 +1799,9 @@ function RiskScan() {
                   <p>
                     Wallet inputs run through the live chain-intelligence stack, while .EML uploads
                     are parsed locally in the browser so the demo stays self-contained and still
-                    renders the full payload for analysts who want every field.
+                    renders the full payload for analysts who want every field. Phone screenshots
+                    and pasted messages are forwarded to the phone-intelligence backend for OCR,
+                    metadata enrichment, and smishing classification.
                   </p>
                 </div>
               </div>
@@ -1238,6 +1816,8 @@ function RiskScan() {
               <p>
                 {scanResponse.mode === "email"
                   ? "Each card below reflects the uploaded .EML file and its locally generated indicators."
+                  : scanResponse.mode === "phone"
+                    ? "Each card below reflects the phone number, message, or screenshot you submitted."
                   : "Each card below reflects one address, txid, or URL from your submission."}
               </p>
             </div>

@@ -114,8 +114,35 @@ export function AuthProvider({ children }) {
     };
   }, [apiFetch]);
 
+  const changeTier = useCallback(async (tier) => {
+    const { ok, data } = await apiFetch("/api/auth/tier", {
+      method: "POST",
+      body: JSON.stringify({ tier }),
+    });
+    if (ok) {
+      setUser(data.user);
+      setUsage(data.usage);
+      setLimits(data.limits);
+      return { ok: true };
+    }
+    return { ok: false, error: data.error || "Tier update failed" };
+  }, [apiFetch]);
+
+  const resetAccountData = useCallback(async () => {
+    const { ok, data } = await apiFetch("/api/auth/reset-data", {
+      method: "POST",
+    });
+    if (ok) {
+      setUser(data.user);
+      setUsage(data.usage);
+      setLimits(data.limits);
+      return { ok: true };
+    }
+    return { ok: false, error: data.error || "Reset failed" };
+  }, [apiFetch]);
+
   return (
-    <AuthContext.Provider value={{ user, usage, limits, loading, login, register, logout, saveScan, recordEmailCheck, getScanHistory, refreshMe }}>
+    <AuthContext.Provider value={{ user, usage, limits, loading, login, register, logout, saveScan, recordEmailCheck, getScanHistory, refreshMe, changeTier, resetAccountData }}>
       {children}
     </AuthContext.Provider>
   );

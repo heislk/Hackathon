@@ -7,6 +7,7 @@
     "dev": "node scripts/dev.mjs",
     "dev:web": "vite",
     "dev:email": "cd email-intelligence && .venv/bin/python -m uvicorn src.api:app --reload --port 8000",
+    "dev:phone": "cd phone-intelligence && .venv/bin/python -m uvicorn src.api:app --reload --port 8001",
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
@@ -14,6 +15,7 @@
   "dependencies": {
     "bcryptjs": "^3.0.3",
     "better-sqlite3": "^12.8.0",
+    "libphonenumber-js": "^1.12.40",
     "papaparse": "^5.5.3",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",

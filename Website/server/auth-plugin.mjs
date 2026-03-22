@@ -86,6 +86,16 @@ const TIER_LIMITS = {
   enterprise: { weeklyScans: Infinity, monthlyEmails: Infinity },
 }
 
+function buildSessionPayload(db, session) {
+  const usage = getUsage(db, session.id)
+  const limits = TIER_LIMITS[session.tier] || TIER_LIMITS.free
+  return {
+    user: { id: session.id, name: session.name, email: session.email, tier: session.tier, createdAt: session.created_at },
+    usage,
+    limits,
+  }
+}
+
 async function readBody(req) {
   const chunks = []
   for await (const chunk of req) chunks.push(chunk)
@@ -194,13 +204,7 @@ export function createAuthApiPlugin() {
           if (method === 'GET' && url === '/api/auth/me') {
             const session = getUserFromToken(db, token)
             if (!session) return send(res, 401, { error: 'Not authenticated' })
-            const usage = getUsage(db, session.id)
-            const limits = TIER_LIMITS[session.tier] || TIER_LIMITS.free
-            return send(res, 200, {
-              user: { id: session.id, name: session.name, email: session.email, tier: session.tier, createdAt: session.created_at },
-              usage,
-              limits,
-            })
+            return send(res, 200, buildSessionPayload(db, session))
           }
 
           // POST /api/auth/scan-history
@@ -263,6 +267,35 @@ export function createAuthApiPlugin() {
             const usage = getUsage(db, session.id)
             const limits = TIER_LIMITS[session.tier] || TIER_LIMITS.free
             return send(res, 200, { usage, limits, tier: session.tier })
+          }
+
+          // POST /api/auth/tier
+          if (method === 'POST' && url === '/api/auth/tier') {
+            const session = getUserFromToken(db, token)
+            if (!session) return send(res, 401, { error: 'Not authenticated' })
+            const { tier } = await readBody(req)
+            if (!tier || !Object.hasOwn(TIER_LIMITS, tier)) {
+              return send(res, 400, { error: 'A valid tier is required' })
+            }
+
+            db.prepare('UPDATE users SET tier = ? WHERE id = ?').run(tier, session.id)
+            const updatedSession = getUserFromToken(db, token)
+            return send(res, 200, { ok: true, ...buildSessionPayload(db, updatedSession) })
+          }
+
+          // POST /api/auth/reset-data
+          if (method === 'POST' && url === '/api/auth/reset-data') {
+            const session = getUserFromToken(db, token)
+            if (!session) return send(res, 401, { error: 'Not authenticated' })
+
+            const transaction = db.transaction((userId) => {
+              db.prepare('DELETE FROM scan_history WHERE user_id = ?').run(userId)
+              db.prepare('DELETE FROM email_checks WHERE user_id = ?').run(userId)
+            })
+            transaction(session.id)
+
+            const updatedSession = getUserFromToken(db, token)
+            return send(res, 200, { ok: true, ...buildSessionPayload(db, updatedSession) })
           }
 
           next()

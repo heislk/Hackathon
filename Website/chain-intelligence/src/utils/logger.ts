@@ -1,10 +1,26 @@
 import * as dotenv from 'dotenv';
-dotenv.config();
+import * as fs from 'fs';
+import * as path from 'path';
+
+const envCandidates = [
+  path.resolve(process.cwd(), '.env'),
+  path.resolve(process.cwd(), 'chain-intelligence/.env')
+];
+
+for (const envPath of envCandidates) {
+  if (fs.existsSync(envPath)) {
+    dotenv.config({ path: envPath });
+  }
+}
 
 const secrets = [
   process.env.ETHERSCAN_API_KEY,
   process.env.COINBASE_CDP_API_KEY,
-  process.env.COINBASE_CDP_API_SECRET
+  process.env.COINBASE_CDP_API_SECRET,
+  process.env.GOPLUS_APP_KEY,
+  process.env.GOPLUS_APP_SECRET,
+  process.env.ARKHAM_API_KEY,
+  process.env.CODEX_API_KEY
 ].filter(Boolean) as string[];
 
 /**

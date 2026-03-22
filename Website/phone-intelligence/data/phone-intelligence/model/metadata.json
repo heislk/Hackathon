@@ -1,0 +1,40 @@
+{
+  "model_version": "sklearn-smishing-v1",
+  "model_format": "joblib",
+  "threshold": 0.28,
+  "config": {
+    "word_ngram_min": 1,
+    "word_ngram_max": 2,
+    "char_ngram_min": 3,
+    "char_ngram_max": 5,
+    "word_min_df": 2,
+    "char_min_df": 2,
+    "word_max_features": 35000,
+    "char_max_features": 45000,
+    "classifier_c": 4.0,
+    "max_iter": 4000,
+    "random_seed": 42
+  },
+  "corpus_path": "/Users/heislk/Documents/GitHub/Hackathon/Website/phone-intelligence/data/phone-intelligence/processed/sms_corpus.jsonl",
+  "train_count": 5825,
+  "val_count": 727,
+  "test_count": 731,
+  "label_counts": {
+    "0": 6107,
+    "1": 1176
+  },
+  "validation_metrics": {
+    "accuracy": 0.9903713892709766,
+    "precision": 0.9508196721311475,
+    "recall": 0.9914529914529915,
+    "f1": 0.9707112970711297,
+    "roc_auc": 0.9986548970155528
+  },
+  "test_metrics": {
+    "accuracy": 0.9822161422708618,
+    "precision": 0.9344262295081968,
+    "recall": 0.957983193277311,
+    "f1": 0.946058091286307,
+    "roc_auc": 0.9957708573625529
+  }
+}
