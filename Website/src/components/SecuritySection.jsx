@@ -2,10 +2,6 @@ export default function SecuritySection() {
   return (
     <section className="security" id="security">
       <div className="security__container">
-        <span className="section-eyebrow">
-          <span className="section-eyebrow__dot" />
-          Security &amp; Privacy
-        </span>
         <h2>Your data never leaves our control.</h2>
         <p className="security__subtitle">
           We built our analysis pipeline to be fully in-house. No third-party data sharing,

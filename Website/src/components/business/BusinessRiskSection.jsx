@@ -41,20 +41,20 @@ const PROOF_PILLARS = [
 ];
 const SUPPORTING_STATS = [
   {
-    value: "859,532",
-    label: "2024 IC3 complaints logged by the FBI, reported on Apr 23, 2025",
+    value: "859K",
+    label: "IC3 fraud complaints filed with the FBI in 2024 — the highest volume ever recorded",
   },
   {
-    value: "$16B+",
-    label: "Reported internet crime losses in the 2024 IC3 report",
+    value: "43.8%",
+    label: "of 2024 crypto thefts stemmed from private key compromise — the most common attack vector",
   },
   {
-    value: "$3.2B",
-    label: "Losses across 147 incidents in our 2025 incident dataset",
+    value: "$62K",
+    label: "average loss per crypto fraud victim in 2024, based on FBI IC3 complaint data",
   },
   {
     value: "$452M",
-    label: "Phishing-linked losses captured in that same incident dataset",
+    label: "in phishing-linked losses captured in our 2025 incident dataset — one third of incidents",
   },
 ];
 export default function BusinessRiskSection() {
@@ -62,10 +62,6 @@ export default function BusinessRiskSection() {
     <section className="business-risk" id="risk">
       <div className="business-risk__container">
         <div className="business-risk__header">
-          <span className="section-eyebrow">
-            <span className="section-eyebrow__dot section-eyebrow__dot--teal" />
-            Exchange Risk Overview
-          </span>
           <h2>When users get scammed, the platform absorbs the operating cost.</h2>
           <p className="business-risk__lede">
             CryptoSecure helps exchanges, compliance teams, and fraud operators spot the

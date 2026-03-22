@@ -54,10 +54,6 @@ export default function BusinessIntegrationSection() {
     <section className="business-integration" id="integration">
       <div className="business-integration__container">
         <div className="business-integration__header">
-          <span className="section-eyebrow">
-            <span className="section-eyebrow__dot section-eyebrow__dot--teal" />
-            Exchange integration
-          </span>
           <h2>Drop risk intelligence into the parts of your exchange that move money.</h2>
           <p className="business-integration__subtitle">
             CryptoSecure is built to sit inside the flow, not beside it. We help exchanges catch

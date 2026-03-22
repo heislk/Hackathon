@@ -214,6 +214,34 @@
   background: var(--primary-dark);
   transform: translateY(-1px);
 }
+.auth-submit:disabled {
+  cursor: wait;
+  opacity: 0.7;
+  transform: none;
+}
+.auth-status {
+  margin: 0;
+  padding: 12px 14px;
+  border-radius: 12px;
+  font-size: 0.88rem;
+  line-height: 1.5;
+  font-weight: 600;
+}
+.auth-status--error {
+  color: var(--danger-dark);
+  background: var(--danger-bg);
+  border: 1px solid rgba(217, 79, 79, 0.2);
+}
+.auth-status--success {
+  color: var(--primary-darkest);
+  background: var(--primary-lighter);
+  border: 1px solid rgba(33, 214, 111, 0.24);
+}
+.auth-inline-note {
+  color: var(--muted);
+  font-size: 0.84rem;
+  line-height: 1.6;
+}
 .auth-switch {
   margin: 18px 0 0;
   color: var(--muted);

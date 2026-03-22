@@ -1,6 +1,10 @@
 import { useMemo, useState } from "react";
+import { Link } from "react-router-dom";
 import Navbar from "../components/Navbar.jsx";
 import Footer from "../components/Footer.jsx";
+import GateBlur from "../components/GateBlur.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+import { useSubscription } from "../context/SubscriptionContext.jsx";
 import "../styles/risk-scan.css";
 
 const EVM_ADDRESS_RE = /^0x[a-fA-F0-9]{40}$/;
@@ -186,7 +190,6 @@ function extractTopTokens(text) {
 function buildEmailDemoResult(file, rawText) {
   const { headers, body } = splitEmailText(rawText);
   const contentText = body || headers;
-  const combinedText = `${headers}\n\n${body}`;
   const subject = extractHeaderValue(headers, "Subject");
   const fromValue = extractHeaderValue(headers, "From");
   const replyToValue = extractHeaderValue(headers, "Reply-To");
@@ -341,6 +344,40 @@ function mapEmailTierToVerdict(riskTier) {
   return "Likely Safe";
 }
 
+function summarizeEmailFindings(data) {
+  const explanation = data?.explanation ?? {};
+  const features = data?.extracted_features ?? {};
+  const reasons = [];
+
+  if (explanation.has_mismatched_links) {
+    reasons.push("The message contains links that do not appear to match where they really send you.");
+  }
+  if (explanation.reply_to_mismatch) {
+    reasons.push("The reply-to address does not line up with the visible sender, which is a common impersonation trick.");
+  }
+  if (explanation.spf_fail || explanation.dkim_fail || explanation.dmarc_fail) {
+    reasons.push("Email authentication checks failed, so the sender identity is not trustworthy.");
+  }
+  if (explanation.urgency_signal_count > 0) {
+    reasons.push(`The message uses urgency language ${explanation.urgency_signal_count} time${explanation.urgency_signal_count === 1 ? "" : "s"} to pressure fast action.`);
+  }
+  if (explanation.suspicious_sender_domain) {
+    reasons.push("The sender domain looks suspicious or inconsistent with a real exchange support domain.");
+  }
+  if ((features.urls?.length ?? 0) > 0) {
+    reasons.push(`It includes ${features.urls.length} link${features.urls.length === 1 ? "" : "s"}, which increases the chance of redirecting to a phishing page.`);
+  }
+  if (explanation.virus_total_flagged) {
+    reasons.push("External threat intelligence also flagged one or more of the indicators in this email.");
+  }
+
+  if (reasons.length === 0) {
+    reasons.push("The scan did not find strong phishing signals, but you should still verify the sender and links through the official exchange app or website.");
+  }
+
+  return reasons.slice(0, 4);
+}
+
 function formatDateTime(value) {
   if (!value) return "Unknown";
   const date = new Date(value);
@@ -462,7 +499,7 @@ function renderKnownMatches(matches) {
   );
 }
 
-function renderChainResult(result) {
+function ChainResultContent({ result }) {
   const data = result.chainData;
   const query = data?.query;
   const summary = data?.summary;
@@ -496,77 +533,87 @@ function renderChainResult(result) {
       </div>
 
       <div className="risk-result__split">
-        <section>
-          <h4>Summary</h4>
-          <div className="risk-data-list">
-            <div className="risk-data-list__row">
-              <div>
-                <strong>Label</strong>
-                <p>{summary?.label ?? "None"}</p>
+        <GateBlur featureKey="fullChainData" label="Full chain data">
+          <section>
+            <h4>Summary</h4>
+            <div className="risk-data-list">
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Label</strong>
+                  <p>{summary?.label ?? "None"}</p>
+                </div>
+                <span>{summary?.addressType ?? "Unknown"}</span>
               </div>
-              <span>{summary?.addressType ?? "Unknown"}</span>
-            </div>
-            <div className="risk-data-list__row">
-              <div>
-                <strong>First seen</strong>
-                <p>{formatDateTime(summary?.firstSeen)}</p>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>First seen</strong>
+                  <p>{formatDateTime(summary?.firstSeen)}</p>
+                </div>
+                <span>Activity</span>
               </div>
-              <span>Activity</span>
-            </div>
-            <div className="risk-data-list__row">
-              <div>
-                <strong>Last active</strong>
-                <p>{formatDateTime(summary?.lastActive)}</p>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Last active</strong>
+                  <p>{formatDateTime(summary?.lastActive)}</p>
+                </div>
+                <span>Activity</span>
               </div>
-              <span>Activity</span>
-            </div>
-            <div className="risk-data-list__row">
-              <div>
-                <strong>Tx count</strong>
-                <p>{summary?.txCount ?? "Unknown"}</p>
+              <div className="risk-data-list__row">
+                <div>
+                  <strong>Tx count</strong>
+                  <p>{summary?.txCount ?? "Unknown"}</p>
+                </div>
+                <span>Volume</span>
               </div>
-              <span>Volume</span>
             </div>
-          </div>
-        </section>
+          </section>
+        </GateBlur>
 
-        <section>
-          <h4>Balances</h4>
-          {renderBalances(summary?.currentBalance)}
-        </section>
+        <GateBlur featureKey="fullChainData" label="Balance and chain context">
+          <section>
+            <h4>Balances</h4>
+            {renderBalances(summary?.currentBalance)}
+          </section>
+        </GateBlur>
       </div>
 
       <div className="risk-result__split">
-        <section>
-          <h4>Intelligence</h4>
-          <div className="risk-pill-list">
-            {intelligence?.labels?.length ? intelligence.labels.map((label) => <span key={label}>{label}</span>) : <span>No labels</span>}
-          </div>
-          <div className="risk-flags">
-            <strong>Flags</strong>
-            <ul>
-              {intelligence?.maliciousFlags?.length ? intelligence.maliciousFlags.map((flag) => <li key={flag}>{flag}</li>) : <li>No malicious flags</li>}
-            </ul>
-          </div>
-          <div className="risk-flags">
-            <strong>Notes</strong>
-            <ul>
-              {intelligence?.notes?.length ? intelligence.notes.map((note) => <li key={note}>{note}</li>) : <li>No notes</li>}
-            </ul>
-          </div>
-          {renderKnownMatches(knownMaliciousMatches)}
-        </section>
+        <GateBlur featureKey="riskFlags" label="Risk flags and notes">
+          <section>
+            <h4>Intelligence</h4>
+            <div className="risk-pill-list">
+              {intelligence?.labels?.length ? intelligence.labels.map((label) => <span key={label}>{label}</span>) : <span>No labels</span>}
+            </div>
+            <div className="risk-flags">
+              <strong>Flags</strong>
+              <ul>
+                {intelligence?.maliciousFlags?.length ? intelligence.maliciousFlags.map((flag) => <li key={flag}>{flag}</li>) : <li>No malicious flags</li>}
+              </ul>
+            </div>
+            <div className="risk-flags">
+              <strong>Notes</strong>
+              <ul>
+                {intelligence?.notes?.length ? intelligence.notes.map((note) => <li key={note}>{note}</li>) : <li>No notes</li>}
+              </ul>
+            </div>
+            {renderKnownMatches(knownMaliciousMatches)}
+          </section>
+        </GateBlur>
 
-        <section>
-          <h4>Recent activity</h4>
-          {renderTransactions(activity?.recentTransactions)}
-        </section>
+        <GateBlur featureKey="transactionHistory" label="Transaction history">
+          <section>
+            <h4>Recent activity</h4>
+            {renderTransactions(activity?.recentTransactions)}
+          </section>
+        </GateBlur>
       </div>
 
-      <details className="risk-raw">
-        <summary>Show raw chain-intelligence output</summary>
-        <pre>{JSON.stringify(data, null, 2)}</pre>
-      </details>
+      <GateBlur featureKey="fullChainData" label="Raw chain output">
+        <details className="risk-raw">
+          <summary>Show raw chain-intelligence output</summary>
+          <pre>{JSON.stringify(data, null, 2)}</pre>
+        </details>
+      </GateBlur>
     </div>
   );
 }
@@ -628,9 +675,19 @@ function renderEmailResult(result) {
   const features = data?.extracted_features ?? {};
   const vt = data?.virus_total;
   const explanation = data?.explanation ?? {};
+  const summaryPoints = summarizeEmailFindings(data);
 
   return (
     <div className="risk-result__content">
+      <section className="risk-plain-language">
+        <h4>Why this looks {result.verdict === "Likely Safe" ? "safer" : "suspicious"}</h4>
+        <ul>
+          {summaryPoints.map((point) => (
+            <li key={point}>{point}</li>
+          ))}
+        </ul>
+      </section>
+
       <div className="risk-result__grid">
         <div>
           <span>Input type</span>
@@ -660,7 +717,7 @@ function renderEmailResult(result) {
 
       <div className="risk-result__split">
         <section>
-          <h4>Signals</h4>
+          <h4>Summary</h4>
           <div className="risk-pill-list">
             {explanation?.top_tokens?.length
               ? explanation.top_tokens.map((token) => <span key={token}>{token}</span>)
@@ -768,6 +825,26 @@ function renderEmailResult(result) {
   );
 }
 
+function UpgradeModal({ title, body }) {
+  return (
+    <div className="risk-modal" role="dialog" aria-modal="true" aria-label={title}>
+      <div className="risk-modal__card">
+        <span className="risk-modal__eyebrow">Upgrade required</span>
+        <h3>{title}</h3>
+        <p>{body}</p>
+        <div className="risk-modal__actions">
+          <Link className="risk-modal__link risk-modal__link--primary" to="/account">
+            View account
+          </Link>
+          <Link className="risk-modal__link risk-modal__link--secondary" to="/for-business">
+            Explore plans
+          </Link>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ResultCard({ result }) {
   return (
     <article className={`risk-result risk-result--${formatVerdictTone(result.verdict)}`}>
@@ -787,7 +864,7 @@ function ResultCard({ result }) {
       {result.error ? (
         <p className="risk-feedback">{result.error}</p>
       ) : result.source === "chain-intelligence" ? (
-        renderChainResult(result)
+        <ChainResultContent result={result} />
       ) : result.source === "email-intelligence" ? (
         renderEmailResult(result)
       ) : (
@@ -798,11 +875,14 @@ function ResultCard({ result }) {
 }
 
 function RiskScan() {
+  const { user, saveScan, recordEmailCheck } = useAuth();
+  const { tier, usage, limits, canScan, canCheckEmail } = useSubscription();
   const [file, setFile] = useState(null);
   const [chainList, setChainList] = useState("");
   const [scanResponse, setScanResponse] = useState(null);
   const [feedback, setFeedback] = useState("");
   const [isScanning, setIsScanning] = useState(false);
+  const [upgradePrompt, setUpgradePrompt] = useState(null);
 
   const parsedEntries = useMemo(() => parseTargets(chainList), [chainList]);
   const validEntries = parsedEntries.filter((entry) => entry.kind !== "unknown");
@@ -814,11 +894,35 @@ function RiskScan() {
     setFeedback("");
   };
 
+  const persistResults = async (results) => {
+    if (!user || !Array.isArray(results) || results.length === 0) return;
+    await Promise.allSettled(
+      results.map((result) =>
+        saveScan(
+          result.value,
+          result.kind,
+          result.verdict,
+          result.isMalicious ?? result.emailData?.is_phishing ?? result.phishingData?.isPhishing ?? false,
+          result.chainData || result.emailData || result.phishingData || null,
+        )
+      )
+    );
+  };
+
   const handleScan = async () => {
     if (hasSelectedEmailFile) {
+      if (user && !canCheckEmail()) {
+        setUpgradePrompt({
+          title: "Monthly email check limit reached",
+          body: "Your current plan has used all available email checks for this month. Upgrade to keep scanning suspicious inbox evidence.",
+        });
+        return;
+      }
+
       setIsScanning(true);
       setFeedback("");
       setScanResponse(null);
+      setUpgradePrompt(null);
 
       try {
         const rawText = await file.text();
@@ -832,7 +936,7 @@ function RiskScan() {
           emailData: data,
         };
 
-        setScanResponse({
+        const responsePayload = {
           mode: "email",
           scannedAt: data?.processed_at,
           summary: {
@@ -846,7 +950,10 @@ function RiskScan() {
             successful: 1,
           },
           results: [emailResult],
-        });
+        };
+
+        setScanResponse(responsePayload);
+        await Promise.allSettled([persistResults(responsePayload.results), recordEmailCheck()]);
       } catch (error) {
         setFeedback(error instanceof Error ? error.message : "Email scan failed");
       } finally {
@@ -865,9 +972,20 @@ function RiskScan() {
       return;
     }
 
+    const projectedScanUsage = usage.weeklyScans + Math.max(1, validEntries.length);
+
+    if (user && (!canScan() || (limits.weeklyScans !== Infinity && projectedScanUsage > limits.weeklyScans))) {
+      setUpgradePrompt({
+        title: "Weekly scan limit reached",
+        body: "Your Free plan has used all available live scans for this week. Upgrade to Pro or Enterprise to keep investigating with full chain context.",
+      });
+      return;
+    }
+
     setIsScanning(true);
     setFeedback("");
     setScanResponse(null);
+    setUpgradePrompt(null);
 
     try {
       const response = await fetch("/api/scan", {
@@ -885,7 +1003,9 @@ function RiskScan() {
         throw new Error(data?.error || "Scan failed");
       }
 
-      setScanResponse({ ...data, mode: "chain" });
+      const responsePayload = { ...data, mode: "chain" };
+      setScanResponse(responsePayload);
+      void persistResults(responsePayload.results);
     } catch (error) {
       setFeedback(error instanceof Error ? error.message : "Scan failed");
     } finally {
@@ -896,6 +1016,8 @@ function RiskScan() {
   const summary = scanResponse?.summary;
   const primaryResult = scanResponse?.results?.[0];
   const overallVerdict = scanResponse?.mode === "email" ? primaryResult?.verdict ?? "Likely Safe" : getOverallVerdict(summary);
+  const scanLimitLabel = limits.weeklyScans === Infinity ? "Unlimited" : `${usage.weeklyScans}/${limits.weeklyScans}`;
+  const emailLimitLabel = limits.monthlyEmails === Infinity ? "Unlimited" : `${usage.monthlyEmails}/${limits.monthlyEmails}`;
 
   return (
     <div className="page-shell">
@@ -903,10 +1025,6 @@ function RiskScan() {
       <main className="risk-page">
         <section className="risk-hero">
           <div className="risk-hero__copy">
-            <span className="section-eyebrow">
-              <span className="section-eyebrow__dot" />
-              Risk Scan
-            </span>
             <h1>
               Upload the evidence.
               <br />
@@ -923,6 +1041,20 @@ function RiskScan() {
               <span>Txid review</span>
               <span>Phishing detection</span>
               <span>Live output</span>
+            </div>
+            <div className="risk-tier-strip">
+              <div>
+                <span className="risk-tier-strip__label">Current tier</span>
+                <strong>{user ? tier : "Guest"}</strong>
+              </div>
+              <div>
+                <span className="risk-tier-strip__label">Weekly scans</span>
+                <strong>{user ? scanLimitLabel : "Create an account to track usage"}</strong>
+              </div>
+              <div>
+                <span className="risk-tier-strip__label">Monthly email checks</span>
+                <strong>{user ? emailLimitLabel : "Guest scans are not saved"}</strong>
+              </div>
             </div>
           </div>
           <div className="risk-upload-card">
@@ -999,6 +1131,12 @@ function RiskScan() {
             <button className="btn btn--primary btn--full" onClick={handleScan} disabled={isScanning}>
               {isScanning ? "Scanning..." : hasSelectedEmailFile ? "Scan EML" : "Run Live Scan"}
             </button>
+
+            <p className="risk-upload-note">
+              {user
+                ? "Signed-in scans are saved to your account and count against your current tier limits."
+                : "You can scan as a guest, but history and tracked limits unlock after you create an account."}
+            </p>
           </div>
         </section>
 
@@ -1110,6 +1248,8 @@ function RiskScan() {
             </div>
           </section>
         )}
+
+        {upgradePrompt ? <UpgradeModal title={upgradePrompt.title} body={upgradePrompt.body} /> : null}
       </main>
       <Footer />
     </div>

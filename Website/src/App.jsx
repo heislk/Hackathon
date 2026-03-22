@@ -7,6 +7,7 @@ import ThreatSimulator from "./components/ThreatSimulator.jsx";
 import ImpactCalculator from "./components/ImpactCalculator.jsx";
 import ChainLogos from "./components/ChainLogos.jsx";
 import SecuritySection from "./components/SecuritySection.jsx";
+import PricingSection from "./components/PricingSection.jsx";
 import Footer from "./components/Footer.jsx";
 import "./styles/styles.css";
 export default function CryptoSecurityWebsite() {
@@ -31,6 +32,7 @@ export default function CryptoSecurityWebsite() {
         <ImpactCalculator />
         <ChainLogos />
         <SecuritySection />
+        <PricingSection />
       </main>
       <Footer />
     </div>

@@ -1,8 +1,12 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, NavLink } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
 import "../styles/navbar.css";
+
 const Navbar = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const navShellRef = useRef(null);
+  const { user, logout } = useAuth();
 
   useEffect(() => {
     if (!mobileOpen) return undefined;
@@ -15,19 +19,32 @@ const Navbar = () => {
 
   useEffect(() => {
     if (!mobileOpen) return undefined;
+    const handlePointerDown = (event) => {
+      if (navShellRef.current && !navShellRef.current.contains(event.target)) {
+        setMobileOpen(false);
+      }
+    };
     const handleKey = (event) => {
       if (event.key === "Escape") {
         setMobileOpen(false);
       }
     };
+    window.addEventListener("pointerdown", handlePointerDown);
     window.addEventListener("keydown", handleKey);
-    return () => window.removeEventListener("keydown", handleKey);
+    return () => {
+      window.removeEventListener("pointerdown", handlePointerDown);
+      window.removeEventListener("keydown", handleKey);
+    };
   }, [mobileOpen]);
 
   const handleClose = () => setMobileOpen(false);
+  const handleLogout = async () => {
+    await logout();
+    handleClose();
+  };
 
   return (
-    <header className="navbar" id="top">
+    <header className="navbar" id="top" ref={navShellRef}>
       <div className="navbar__inner">
         <Link className="brand" to="/" aria-label="CryptoSecure home">
           <span className="brand__mark" aria-hidden="true">
@@ -54,31 +71,11 @@ const Navbar = () => {
             <span />
           </button>
         </div>
-        <div
-          className={`nav-scrim${mobileOpen ? " is-open" : ""}`}
-          role="presentation"
-          onClick={handleClose}
-        />
         <nav
           id="primary-navigation"
           className={`nav-links${mobileOpen ? " is-open" : ""}`}
           aria-label="Primary"
         >
-          <div className="nav-links__header">
-            <div className="nav-links__copy">
-              <span className="nav-links__eyebrow">Mobile menu</span>
-              <strong>CryptoSecure</strong>
-              <p>Quick links for small screens.</p>
-            </div>
-            <button
-              type="button"
-              className="nav-links__close"
-              onClick={handleClose}
-              aria-label="Close navigation"
-            >
-              <span aria-hidden="true">×</span>
-            </button>
-          </div>
           <Link className="nav-link" to={{ pathname: "/", hash: "#how-it-works" }}
             onClick={handleClose}>
             How It Works
@@ -86,6 +83,10 @@ const Navbar = () => {
           <Link className="nav-link" to={{ pathname: "/", hash: "#threat-simulator" }}
             onClick={handleClose}>
             Threat Simulator
+          </Link>
+          <Link className="nav-link" to="/wiki"
+            onClick={handleClose}>
+            Scam Wiki
           </Link>
           <Link className="nav-link" to="/for-business"
             onClick={handleClose}>
@@ -95,10 +96,21 @@ const Navbar = () => {
             onClick={handleClose}>
             Risk Scan
           </NavLink>
-          <Link className="nav-cta" to="/sign-in"
-            onClick={handleClose}>
-            Get Protected
-          </Link>
+          {user ? (
+            <>
+              <Link className="nav-link" to="/account" onClick={handleClose}>
+                Account
+              </Link>
+              <button type="button" className="nav-cta nav-cta--button" onClick={handleLogout}>
+                Log out
+              </button>
+            </>
+          ) : (
+            <Link className="nav-cta" to="/register"
+              onClick={handleClose}>
+              Get Protected
+            </Link>
+          )}
         </nav>
       </div>
     </header>

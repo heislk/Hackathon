@@ -1,5 +1,9 @@
 import { Link } from "react-router-dom";
+import { useAuth } from "../context/AuthContext.jsx";
+
 export default function Footer() {
+  const { user } = useAuth();
+
   return (
     <footer className="footer" id="contact">
       <div className="footer__inner">
@@ -18,6 +22,7 @@ export default function Footer() {
             <h4>Product</h4>
             <Link to="/risk-scan">Risk Scan</Link>
             <Link to="/#threat-simulator">Threat Simulator</Link>
+            <Link to="/wiki">Scam Wiki</Link>
             <Link to="/#impact">Impact Calculator</Link>
           </div>
           <div className="footer__col">
@@ -28,8 +33,8 @@ export default function Footer() {
           </div>
           <div className="footer__col">
             <h4>Account</h4>
-            <Link to="/login">Login</Link>
-            <Link to="/sign-in">Sign Up</Link>
+            <Link to={user ? "/account" : "/login"}>{user ? "My Account" : "Login"}</Link>
+            <Link to={user ? "/risk-scan" : "/register"}>{user ? "Run a Scan" : "Sign Up"}</Link>
           </div>
         </div>
         <div className="footer__bottom">

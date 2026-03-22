@@ -2,9 +2,9 @@ import { useState } from "react";
 export default function B2BSection() {
   const [customers, setCustomers] = useState(5000);
   const [avgPortfolio, setAvgPortfolio] = useState(15000);
-  const AVG_LOSS_RATE = 0.067; 
-  const DETECTION_RATE = 0.70; 
-  const PLATFORM_COST_PER_USER = 2.5; 
+  const AVG_LOSS_RATE = 0.042;
+  const DETECTION_RATE = 0.68; 
+  const PLATFORM_COST_PER_USER = 2.25; 
   const totalAtRisk = customers * avgPortfolio * AVG_LOSS_RATE;
   const prevented = totalAtRisk * DETECTION_RATE;
   const annualPlatformCost = customers * PLATFORM_COST_PER_USER * 12;
@@ -19,10 +19,6 @@ export default function B2BSection() {
     <section className="b2b" id="for-business">
       <div className="b2b__container">
         <div className="b2b__header">
-          <span className="section-eyebrow">
-            <span className="section-eyebrow__dot section-eyebrow__dot--teal" />
-            For Exchanges &amp; Platforms
-          </span>
           <h2>Protect your customers. Reduce your losses.</h2>
           <p>
             Integrate CryptoSecure's risk engine into your platform to catch fraud before it

@@ -1,6 +1,36 @@
-import { Link } from "react-router-dom";
+import { useState } from "react";
+import { Link, Navigate, useNavigate } from "react-router-dom";
 import AuthLayout from "../components/AuthLayout.jsx";
+import { useAuth } from "../context/AuthContext.jsx";
+
 export default function Login() {
+  const navigate = useNavigate();
+  const { user, login, loading } = useAuth();
+  const [form, setForm] = useState({ email: "", password: "" });
+  const [submitting, setSubmitting] = useState(false);
+  const [error, setError] = useState("");
+
+  if (!loading && user) {
+    return <Navigate to="/account" replace />;
+  }
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setSubmitting(true);
+    setError("");
+
+    const result = await login(form.email, form.password);
+
+    setSubmitting(false);
+
+    if (!result.ok) {
+      setError(result.error);
+      return;
+    }
+
+    navigate("/account");
+  };
+
   return (
     <AuthLayout
       badge="Welcome back"
@@ -15,10 +45,10 @@ export default function Login() {
         "Turn on Remember me only on a device you trust.",
       ]}
       switchText="Need an account?"
-      switchHref="/sign-in"
-      switchLabel="Request access"
+      switchHref="/register"
+      switchLabel="Create one"
     >
-      <form className="auth-form">
+      <form className="auth-form" onSubmit={handleSubmit}>
         <label className="field">
           <span className="field-label">Email address</span>
           <input
@@ -27,6 +57,9 @@ export default function Login() {
             name="email"
             placeholder="name@company.com"
             autoComplete="email"
+            value={form.email}
+            onChange={(event) => setForm((current) => ({ ...current, email: event.target.value }))}
+            required
           />
           <span className="field-help">Use the email associated with your workspace.</span>
         </label>
@@ -38,6 +71,9 @@ export default function Login() {
             name="password"
             placeholder="Enter your password"
             autoComplete="current-password"
+            value={form.password}
+            onChange={(event) => setForm((current) => ({ ...current, password: event.target.value }))}
+            required
           />
         </label>
         <div className="auth-row">
@@ -45,12 +81,13 @@ export default function Login() {
             <input type="checkbox" name="remember" defaultChecked />
             <span>Remember me</span>
           </label>
-          <Link className="auth-link" to="/sign-in">
-            Request access
+          <Link className="auth-link" to="/register">
+            Create account
           </Link>
         </div>
+        {error ? <p className="auth-status auth-status--error">{error}</p> : null}
         <button className="auth-submit" type="submit">
-          Continue
+          {submitting ? "Signing in..." : "Continue"}
         </button>
       </form>
     </AuthLayout>

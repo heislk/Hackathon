@@ -4,10 +4,6 @@ export default function BusinessTrustSection() {
     <section className="business-trust" aria-labelledby="business-trust-title">
       <div className="business-trust__inner">
         <div className="business-trust__header">
-          <span className="section-eyebrow business-trust__eyebrow">
-            <span className="section-eyebrow__dot section-eyebrow__dot--teal" />
-            Enterprise trust layer
-          </span>
           <h2 id="business-trust-title" className="business-trust__title">
             Security teams should approve it. Product teams should ship it. Users should never see the risk.
           </h2>

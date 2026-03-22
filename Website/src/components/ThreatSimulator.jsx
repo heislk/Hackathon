@@ -179,10 +179,6 @@ export default function ThreatSimulator() {
     <section className="threat-sim" id="threat-simulator">
       <div className="threat-sim__container">
         <div className="threat-sim__header">
-          <span className="section-eyebrow">
-            <span className="section-eyebrow__dot section-eyebrow__dot--danger" />
-            Interactive Threat Simulator
-          </span>
           <h2>See what an attack looks like — before it happens to you.</h2>
           <p>
             These simulations are based on real attack patterns that have stolen billions from

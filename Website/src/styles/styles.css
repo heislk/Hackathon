@@ -2,39 +2,7 @@
   position: relative;
   overflow: clip;
 }
-.section-eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 16px;
-  border-radius: 999px;
-  background: var(--primary-lighter);
-  color: var(--primary-darkest);
-  font-size: 0.8rem;
-  font-weight: 700;
-  letter-spacing: 0.06em;
-  text-transform: uppercase;
-}
-.section-eyebrow__dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  background: var(--primary);
-  box-shadow: 0 0 8px rgba(33, 214, 111, 0.4);
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-.section-eyebrow__dot--danger {
-  background: var(--danger-dark);
-  box-shadow: 0 0 8px rgba(217, 79, 79, 0.4);
-}
-.section-eyebrow__dot--teal {
-  background: var(--teal);
-  box-shadow: 0 0 8px rgba(11, 148, 143, 0.4);
-}
-@keyframes pulse-dot {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.6; transform: scale(1.2); }
-}
+
 .btn {
   display: inline-flex;
   align-items: center;
@@ -207,6 +175,105 @@
 @keyframes float {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(8px); }
+}
+.wiki-hero {
+  padding: 120px 24px 54px;
+  background:
+    radial-gradient(circle at top left, rgba(33, 214, 111, 0.12), transparent 34%),
+    radial-gradient(circle at top right, rgba(11, 148, 143, 0.1), transparent 28%),
+    var(--bg);
+}
+.wiki-hero__container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+.wiki-hero h1 {
+  margin-top: 18px;
+  font-size: clamp(2.6rem, 5vw, 4rem);
+  line-height: 1.06;
+  letter-spacing: -0.04em;
+  color: var(--text-heading);
+}
+.wiki-hero p {
+  max-width: 62ch;
+  margin-top: 18px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.75;
+}
+.wiki-hero__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+}
+.wiki-hero__quickstart {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  margin-top: 28px;
+}
+.wiki-hero__quickstart-card {
+  padding: 18px 18px 16px;
+  border-radius: 20px;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.wiki-hero__quickstart-card strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+}
+.wiki-hero__quickstart-card p {
+  margin-top: 8px;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--muted);
+}
+.wiki-hero__chips span {
+  padding: 8px 14px;
+  border-radius: 999px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  box-shadow: var(--shadow-card);
+}
+.wiki-nav {
+  position: sticky;
+  top: 76px;
+  z-index: 12;
+  padding: 0 24px 22px;
+  background: linear-gradient(180deg, rgba(244, 247, 248, 0.94), rgba(244, 247, 248, 0.82));
+  backdrop-filter: blur(10px);
+}
+.wiki-nav__container {
+  display: flex;
+  gap: 12px;
+  max-width: var(--container);
+  margin: 0 auto;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+.wiki-nav__container a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.92);
+  color: var(--text-heading);
+  font-size: 0.83rem;
+  font-weight: 700;
+  white-space: nowrap;
+  box-shadow: var(--shadow-card);
+}
+.wiki-nav__container a:hover {
+  border-color: var(--primary-light);
+  color: var(--primary-darkest);
 }
 .how-it-works {
   padding: var(--section-gap) 24px;
@@ -688,6 +755,398 @@
   padding: var(--section-gap) 24px;
   background: var(--bg-white);
 }
+.phishing-examples {
+  padding: var(--section-gap) 24px;
+  background:
+    radial-gradient(circle at top right, rgba(11, 148, 143, 0.08), transparent 30%),
+    var(--bg-white);
+}
+.phishing-examples__container,
+.phishing-checklist__container,
+.exchange-directory__container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+.phishing-examples__header,
+.phishing-checklist__intro,
+.exchange-directory__header {
+  max-width: 720px;
+}
+.phishing-examples__header h2,
+.phishing-checklist__intro h2,
+.exchange-directory__header h2 {
+  margin-top: 16px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
+}
+.phishing-examples__header p,
+.phishing-checklist__intro p,
+.exchange-directory__header p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+.phishing-examples__list {
+  display: grid;
+  gap: 20px;
+  margin-top: 42px;
+}
+.example-card {
+  padding: 24px;
+  border-radius: 24px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.example-card__top {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 18px;
+}
+.example-card__top strong {
+  font-size: 1.2rem;
+  color: var(--text-heading);
+}
+.example-card__top span {
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.example-card__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+.example-card__panel {
+  padding: 18px;
+  border-radius: 18px;
+  border: 1px solid var(--border);
+}
+.example-card__panel--legit {
+  background: linear-gradient(180deg, var(--primary-lighter), #ffffff);
+  border-color: var(--primary-light);
+}
+.example-card__panel--fake {
+  background: linear-gradient(180deg, #fff3f3, #ffffff);
+  border-color: rgba(217, 79, 79, 0.22);
+}
+.example-card__label {
+  display: inline-flex;
+  padding: 5px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  color: var(--text-heading);
+}
+.example-card__meta {
+  margin-top: 14px;
+}
+.example-card__meta strong {
+  display: block;
+  font-size: 0.95rem;
+  color: var(--text-heading);
+  overflow-wrap: anywhere;
+}
+.example-card__meta p {
+  margin-top: 6px;
+  color: var(--muted);
+  font-size: 0.9rem;
+}
+.example-card__panel ul {
+  margin: 14px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+.example-card__panel li {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.phishing-checklist {
+  padding: var(--section-gap) 24px;
+  background: var(--bg);
+}
+.phishing-checklist__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  margin-top: 42px;
+}
+.phishing-checklist__card {
+  padding: 24px;
+  border-radius: 20px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.phishing-checklist__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--primary-lighter);
+  color: var(--primary-darkest);
+  font-family: var(--heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+.phishing-checklist__card h3 {
+  margin-top: 18px;
+  font-size: 1.08rem;
+  color: var(--text-heading);
+}
+.phishing-checklist__card p {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.exchange-directory {
+  padding: var(--section-gap) 24px;
+  background: var(--bg-white);
+}
+.exchange-directory__table-wrap {
+  margin-top: 40px;
+  overflow-x: auto;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+  background: var(--bg-white);
+}
+.exchange-directory__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 980px;
+}
+.exchange-directory__table th,
+.exchange-directory__table td {
+  padding: 18px 20px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--border);
+}
+.exchange-directory__table thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-elevated);
+  color: var(--text-heading);
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.exchange-directory__table tbody tr:nth-child(even) {
+  background: rgba(247, 250, 251, 0.7);
+}
+.exchange-directory__table tbody td:first-child {
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.wiki-anatomy,
+.wiki-playbooks,
+.wiki-channels,
+.wiki-response,
+.wiki-faq {
+  padding: var(--section-gap) 24px;
+}
+.wiki-anatomy {
+  background:
+    radial-gradient(circle at top left, rgba(11, 148, 143, 0.08), transparent 34%),
+    var(--bg-white);
+}
+.wiki-playbooks {
+  background: var(--bg);
+}
+.wiki-channels {
+  background: var(--bg-white);
+}
+.wiki-response {
+  background:
+    radial-gradient(circle at top right, rgba(217, 79, 79, 0.08), transparent 34%),
+    var(--bg);
+}
+.wiki-faq {
+  background: var(--bg-white);
+}
+.wiki-anatomy__container,
+.wiki-playbooks__container,
+.wiki-channels__container,
+.wiki-response__container,
+.wiki-faq__container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+.wiki-anatomy__header,
+.wiki-playbooks__header,
+.wiki-channels__header,
+.wiki-response__header,
+.wiki-faq__header {
+  max-width: 720px;
+}
+.wiki-anatomy__header h2,
+.wiki-playbooks__header h2,
+.wiki-channels__header h2,
+.wiki-response__header h2,
+.wiki-faq__header h2 {
+  margin-top: 16px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  letter-spacing: -0.03em;
+}
+.wiki-anatomy__header p,
+.wiki-playbooks__header p,
+.wiki-channels__header p,
+.wiki-response__header p {
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+}
+.wiki-anatomy__grid,
+.wiki-playbooks__grid,
+.wiki-channels__grid,
+.wiki-response__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 40px;
+}
+.wiki-anatomy__card,
+.wiki-playbook,
+.wiki-channel-card,
+.wiki-response__card,
+.wiki-faq__item {
+  padding: 24px;
+  border-radius: 22px;
+  border: 1px solid var(--border);
+  background: var(--bg-white);
+  box-shadow: var(--shadow-card);
+}
+.wiki-anatomy__card h3,
+.wiki-playbook h3,
+.wiki-response__card h3 {
+  font-size: 1.15rem;
+  color: var(--text-heading);
+}
+.wiki-anatomy__card p,
+.wiki-playbook__summary {
+  margin-top: 10px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.wiki-playbook strong,
+.wiki-channel-card strong {
+  display: block;
+  margin-top: 16px;
+  font-size: 0.82rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-dark);
+}
+.wiki-playbook ul {
+  margin: 12px 0 0;
+  padding-left: 18px;
+  color: var(--text);
+}
+.wiki-playbook li {
+  margin-top: 8px;
+  line-height: 1.6;
+}
+.wiki-anatomy__check,
+.wiki-playbook__defense {
+  margin-top: 18px;
+  padding: 14px 16px;
+  border-radius: 16px;
+  background: var(--primary-lighter);
+  border: 1px solid var(--primary-light);
+}
+.wiki-anatomy__check span,
+.wiki-playbook__defense span {
+  display: block;
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--primary-darkest);
+}
+.wiki-anatomy__check p,
+.wiki-playbook__defense p {
+  margin-top: 8px;
+  color: var(--text);
+  line-height: 1.6;
+}
+.wiki-channel-card {
+  display: grid;
+  gap: 14px;
+}
+.wiki-channel-card__label {
+  display: inline-flex;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--text-heading);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.wiki-channel-card p,
+.wiki-response__card p {
+  margin-top: 8px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+.wiki-response__number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: var(--danger-bg);
+  color: var(--danger-dark);
+  font-family: var(--heading);
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+.wiki-response__card h3 {
+  margin-top: 18px;
+}
+.wiki-faq__list {
+  display: grid;
+  gap: 14px;
+  margin-top: 32px;
+}
+.wiki-faq__item summary {
+  cursor: pointer;
+  list-style: none;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-heading);
+}
+.wiki-faq__item summary::-webkit-details-marker {
+  display: none;
+}
+.wiki-faq__item p {
+  margin-top: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+}
+#phishing-examples,
+#phishing-checklist,
+#phishing-anatomy,
+#scam-playbooks,
+#channel-red-flags,
+#exchange-directory,
+#response-plan,
+#wiki-faq {
+  scroll-margin-top: 150px;
+}
 .impact__container {
   max-width: var(--container);
   margin: 0 auto;
@@ -799,6 +1258,40 @@
   font-size: 0.75rem;
   font-weight: 600;
   min-width: 40px;
+}
+.impact__bar-legend {
+  display: flex;
+  gap: 16px;
+  margin-top: 10px;
+  font-size: 0.78rem;
+  color: var(--muted);
+}
+.impact__bar-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.impact__bar-legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+.impact__bar-legend-item--safe .impact__bar-legend-dot {
+  background: var(--primary-lighter);
+  border: 1px solid var(--primary-light);
+}
+.impact__bar-legend-item--risk .impact__bar-legend-dot {
+  background: var(--danger);
+  border: 1px solid var(--danger-dark);
+}
+.impact__source {
+  margin-top: 20px;
+  font-size: 0.78rem;
+  color: var(--muted-light);
+  line-height: 1.6;
+  border-top: 1px solid var(--border);
+  padding-top: 14px;
 }
 .impact__breakdown {
   display: grid;
@@ -1241,6 +1734,9 @@
   :root {
     --section-gap: 80px;
   }
+  .wiki-hero__quickstart {
+    grid-template-columns: 1fr;
+  }
   .hero__stats {
     grid-template-columns: 1fr;
     gap: 12px;
@@ -1258,6 +1754,14 @@
     padding: 0;
   }
   .threat-sim__panels {
+    grid-template-columns: 1fr;
+  }
+  .example-card__grid,
+  .phishing-checklist__grid,
+  .wiki-anatomy__grid,
+  .wiki-playbooks__grid,
+  .wiki-channels__grid,
+  .wiki-response__grid {
     grid-template-columns: 1fr;
   }
   .impact__grid {
@@ -1281,6 +1785,83 @@
   .hero {
     padding: 100px 16px 60px;
     min-height: auto;
+  }
+  .wiki-hero {
+    padding: 96px 16px 40px;
+  }
+  .wiki-hero h1 {
+    font-size: 2.2rem;
+  }
+  .wiki-hero p {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  .wiki-hero__quickstart {
+    gap: 12px;
+    margin-top: 22px;
+  }
+  .wiki-hero__quickstart-card {
+    padding: 16px;
+  }
+  .wiki-hero__quickstart-card strong {
+    font-size: 0.92rem;
+  }
+  .wiki-hero__quickstart-card p {
+    font-size: 0.92rem;
+    line-height: 1.58;
+  }
+  .wiki-hero__chips span {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .wiki-nav {
+    top: 68px;
+    padding: 0 16px 18px;
+  }
+  .wiki-nav__container {
+    gap: 10px;
+    margin-right: -4px;
+    padding-bottom: 2px;
+    scroll-snap-type: x proximity;
+  }
+  .wiki-nav__container a {
+    min-height: 42px;
+    padding: 10px 14px;
+    font-size: 0.8rem;
+    scroll-snap-align: start;
+  }
+  .wiki-anatomy,
+  .phishing-examples,
+  .phishing-checklist,
+  .wiki-playbooks,
+  .wiki-channels,
+  .exchange-directory,
+  .wiki-response,
+  .wiki-faq {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+  .wiki-anatomy__header p,
+  .phishing-examples__header p,
+  .phishing-checklist__intro p,
+  .wiki-playbooks__header p,
+  .wiki-channels__header p,
+  .exchange-directory__header p,
+  .wiki-response__header p {
+    font-size: 1rem;
+    line-height: 1.65;
+  }
+  .wiki-anatomy__header h2,
+  .phishing-examples__header h2,
+  .phishing-checklist__intro h2,
+  .wiki-playbooks__header h2,
+  .wiki-channels__header h2,
+  .exchange-directory__header h2,
+  .wiki-response__header h2,
+  .wiki-faq__header h2 {
+    font-size: 1.85rem;
+    line-height: 1.15;
   }
   .hero__badge {
     padding: 8px 14px;
@@ -1318,6 +1899,120 @@
   .threat-sim__panel {
     padding: 18px;
   }
+  .example-card,
+  .phishing-checklist__card,
+  .wiki-anatomy__card,
+  .wiki-playbook,
+  .wiki-channel-card,
+  .wiki-response__card,
+  .wiki-faq__item {
+    padding: 20px;
+    border-radius: 20px;
+  }
+  .wiki-anatomy__card h3,
+  .wiki-playbook h3,
+  .wiki-response__card h3,
+  .wiki-faq__item summary,
+  .wiki-channel-card__label {
+    line-height: 1.35;
+  }
+  .wiki-anatomy__card p,
+  .wiki-playbook__summary,
+  .wiki-channel-card p,
+  .wiki-response__card p,
+  .wiki-faq__item p,
+  .exchange-directory__table td {
+    font-size: 0.96rem;
+    line-height: 1.7;
+  }
+  .wiki-playbook ul {
+    padding-left: 16px;
+  }
+  .wiki-playbook li {
+    margin-top: 10px;
+  }
+  .wiki-channel-card {
+    gap: 16px;
+  }
+  .wiki-channel-card > div {
+    padding-top: 12px;
+    border-top: 1px solid rgba(13, 23, 32, 0.08);
+  }
+  .wiki-channel-card > div:first-of-type {
+    padding-top: 0;
+    border-top: none;
+  }
+  .wiki-response__number {
+    width: 36px;
+    height: 36px;
+  }
+  .wiki-faq__item summary {
+    font-size: 1rem;
+  }
+  .example-card__top strong {
+    font-size: 1.08rem;
+  }
+  .example-card__panel {
+    padding: 16px;
+  }
+  .example-card__panel ul {
+    padding-left: 16px;
+  }
+  .phishing-checklist__grid {
+    gap: 14px;
+  }
+  .phishing-checklist__card h3 {
+    font-size: 1rem;
+  }
+  .exchange-directory__table-wrap {
+    overflow: visible;
+    border: none;
+    box-shadow: none;
+    background: transparent;
+  }
+  .exchange-directory__table {
+    min-width: 0;
+    display: block;
+  }
+  .exchange-directory__table thead {
+    display: none;
+  }
+  .exchange-directory__table tbody {
+    display: grid;
+    gap: 14px;
+  }
+  .exchange-directory__table tr {
+    display: grid;
+    gap: 10px;
+    padding: 18px;
+    border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--bg-white);
+    box-shadow: var(--shadow-card);
+  }
+  .exchange-directory__table td {
+    display: grid;
+    gap: 6px;
+    padding: 0;
+    border-bottom: none;
+  }
+  .exchange-directory__table td::before {
+    content: attr(data-label);
+    font-size: 0.68rem;
+    font-weight: 800;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--primary-dark);
+  }
+  .exchange-directory__table tbody tr:nth-child(even) {
+    background: var(--bg-white);
+  }
+  .exchange-directory__table tbody td:first-child {
+    font-size: 1.08rem;
+  }
+  .exchange-directory__table tbody td:first-child::before {
+    color: var(--muted);
+  }
   .step-card {
     padding: 24px 20px;
   }
@@ -1348,6 +2043,49 @@
 @media (max-width: 480px) {
   .hero {
     padding: 92px 14px 56px;
+  }
+  .wiki-hero {
+    padding: 88px 14px 36px;
+  }
+  .wiki-nav {
+    top: 64px;
+    padding: 0 14px 16px;
+  }
+  .wiki-nav__container a {
+    min-height: 40px;
+    padding: 9px 13px;
+    font-size: 0.77rem;
+  }
+  .wiki-hero__chips {
+    gap: 8px;
+  }
+  .example-card,
+  .phishing-checklist__card,
+  .wiki-anatomy__card,
+  .wiki-playbook,
+  .wiki-channel-card,
+  .wiki-response__card,
+  .wiki-faq__item,
+  .exchange-directory__table tr {
+    padding: 16px;
+  }
+  .wiki-anatomy__header h2,
+  .phishing-examples__header h2,
+  .phishing-checklist__intro h2,
+  .wiki-playbooks__header h2,
+  .wiki-channels__header h2,
+  .exchange-directory__header h2,
+  .wiki-response__header h2,
+  .wiki-faq__header h2 {
+    font-size: 1.68rem;
+  }
+  .wiki-anatomy__card p,
+  .wiki-playbook__summary,
+  .wiki-channel-card p,
+  .wiki-response__card p,
+  .wiki-faq__item p,
+  .exchange-directory__table td {
+    font-size: 0.93rem;
   }
   .hero__title {
     font-size: 2.05rem;
@@ -1451,5 +2189,185 @@
   .mission-hero__actions {
     flex-direction: column;
     align-items: stretch;
+  }
+}
+.pricing {
+  padding: 112px 24px 40px;
+  background:
+    linear-gradient(180deg, rgba(244, 247, 248, 0), rgba(255, 255, 255, 0.65)),
+    radial-gradient(circle at 15% 20%, rgba(11, 148, 143, 0.07), transparent 28%),
+    var(--bg);
+}
+.pricing__container {
+  max-width: var(--container);
+  margin: 0 auto;
+}
+.pricing__intro {
+  max-width: 60rem;
+}
+.pricing__eyebrow {
+  display: inline-block;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--bg-white);
+  border: 1px solid var(--border);
+  color: var(--primary-dark);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pricing__intro h2 {
+  margin-top: 18px;
+  font-size: clamp(2rem, 4vw, 3rem);
+  line-height: 1.08;
+  letter-spacing: -0.04em;
+}
+.pricing__intro p {
+  max-width: 58ch;
+  margin-top: 14px;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.75;
+}
+.pricing__cards {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+  margin-top: 32px;
+}
+.pricing-card {
+  display: grid;
+  align-content: start;
+  gap: 12px;
+  padding: 24px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.9);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-card);
+}
+.pricing-card--pro {
+  border-color: rgba(33, 214, 111, 0.35);
+  box-shadow: 0 18px 44px rgba(33, 214, 111, 0.12);
+}
+.pricing-card--enterprise {
+  background: linear-gradient(180deg, rgba(238, 242, 255, 0.85), rgba(255, 255, 255, 0.96));
+}
+.pricing-card__badge {
+  justify-self: start;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+}
+.pricing-card h3 {
+  font-size: 1.35rem;
+}
+.pricing-card__price {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+.pricing-card__price strong {
+  font-size: 2rem;
+  color: var(--text-heading);
+  letter-spacing: -0.04em;
+}
+.pricing-card__price span,
+.pricing-card__description {
+  color: var(--muted);
+}
+.pricing-card__description {
+  line-height: 1.65;
+  min-height: 84px;
+}
+.pricing-card__cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  padding: 12px 16px;
+  border-radius: 14px;
+  background: var(--text-heading);
+  color: #fff;
+  font-weight: 700;
+  text-decoration: none;
+}
+.pricing-card--pro .pricing-card__cta {
+  background: var(--primary);
+}
+.pricing-card--enterprise .pricing-card__cta {
+  background: #3346a6;
+}
+.pricing-table-wrap {
+  margin-top: 24px;
+  overflow: auto;
+  border-radius: 24px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-card);
+}
+.pricing-table {
+  width: 100%;
+  min-width: 760px;
+  border-collapse: collapse;
+}
+.pricing-table th,
+.pricing-table td {
+  padding: 16px 18px;
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.pricing-table th {
+  background: var(--bg-elevated);
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.pricing-table td {
+  color: var(--text);
+  font-weight: 600;
+}
+.pricing-table td strong {
+  display: block;
+  color: var(--text-heading);
+}
+.pricing-table td span {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--muted);
+}
+.pricing-table .is-positive {
+  color: var(--primary-darkest);
+}
+.pricing-table .is-muted {
+  color: var(--muted);
+}
+.pricing-table .is-negotiable {
+  color: #3346a6;
+}
+@media (max-width: 960px) {
+  .pricing__cards {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 640px) {
+  .pricing {
+    padding: 84px 16px 24px;
+  }
+  .pricing-card {
+    padding: 20px;
+  }
+  .pricing-card__description {
+    min-height: 0;
   }
 }

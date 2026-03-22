@@ -5,7 +5,12 @@ import reactRefresh from 'eslint-plugin-react-refresh'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores([
+    'dist',
+    'chain-intelligence/dist/**',
+    'email-intelligence/.venv/**',
+    'src/assets/csvtoprop.jsx',
+  ]),
   {
     files: ['**/*.{js,jsx}'],
     extends: [
@@ -24,6 +29,15 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+    },
+  },
+  {
+    files: ['vite.config.js', 'scripts/**/*.mjs', 'server/**/*.mjs'],
+    languageOptions: {
+      globals: {
+        ...globals.node,
+        ...globals.browser,
+      },
     },
   },
 ])

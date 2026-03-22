@@ -6,7 +6,12 @@ import RiskScan from './pages/risk-scan.jsx';
 import OurMission from './pages/our-mission.jsx';
 import SignIn from "./pages/sign-in.jsx";
 import Login from "./pages/login.jsx";
+import Account from "./pages/account.jsx";
 import ForBusiness from "./pages/for-business.jsx";
+import WikiPage from "./pages/wiki.jsx";
+import { AuthProvider } from "./context/AuthContext.jsx";
+import { SubscriptionProvider } from "./context/SubscriptionContext.jsx";
+
 const router = createBrowserRouter([
   {
     path: "/",
@@ -25,14 +30,30 @@ const router = createBrowserRouter([
     element: <SignIn />,
   },
   {
+    path: "/register",
+    element: <SignIn />,
+  },
+  {
     path: "/login",
     element: <Login />,
+  },
+  {
+    path: "/account",
+    element: <Account />,
   },
   {
     path: "/for-business",
     element: <ForBusiness />,
   },
+  {
+    path: "/wiki",
+    element: <WikiPage />,
+  },
 ]);
 createRoot(document.getElementById("root")).render(
-  <RouterProvider router={router} />,
+  <AuthProvider>
+    <SubscriptionProvider>
+      <RouterProvider router={router} />
+    </SubscriptionProvider>
+  </AuthProvider>,
 );

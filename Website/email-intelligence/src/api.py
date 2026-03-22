@@ -98,6 +98,9 @@ class ScanExplanation(BaseModel):
     top_tokens: list[str]
     """Tokens with highest attention weight — drove the classification decision."""
 
+    trusted_sender_domain: bool
+    """True when the sender domain matches a trusted exchange/payment brand domain."""
+
     urgency_signal_count: int
     """Number of urgency phrases found (e.g. 'immediately', 'suspended', 'verify now')."""
 
@@ -234,6 +237,36 @@ _TRUSTED_DOMAINS = {
 }
 
 
+def _is_trusted_sender_domain(domain: Optional[str]) -> bool:
+    return bool(domain) and any(str(domain).endswith(trusted) for trusted in _TRUSTED_DOMAINS)
+
+
+def _all_authentication_passed(parsed_email) -> bool:
+    return parsed_email.spf_result == "pass" and parsed_email.dkim_result == "pass" and parsed_email.dmarc_result == "pass"
+
+
+def _normalize_ml_score(parsed_email, phishing_score: float, vt_score: float, vt_configured: bool) -> float:
+    """
+    Trust-aware calibration:
+    - Keep the raw ML score for suspicious mail.
+    - Lower the score only when the sender domain is trusted, authentication passes,
+      the link profile looks consistent, and VirusTotal is also quiet.
+    """
+    trusted_sender = _is_trusted_sender_domain(parsed_email.sender_domain)
+    auth_passed = _all_authentication_passed(parsed_email)
+    clean_link_profile = not parsed_email.has_mismatched_links and parsed_email.reply_to_domain is None
+
+    if trusted_sender and auth_passed and clean_link_profile and (not vt_configured or vt_score <= 0.25):
+        # This still respects the model signal, but avoids treating clearly legitimate,
+        # fully authenticated mail as CRITICAL just because it uses warning language.
+        return min(phishing_score, 0.20 + (vt_score * 0.25))
+
+    if trusted_sender and auth_passed and (not vt_configured or vt_score <= 0.15):
+        return min(phishing_score, 0.35 + (vt_score * 0.25))
+
+    return phishing_score
+
+
 # ─── Endpoints ────────────────────────────────────────────────────────────────
 
 @app.get("/health", response_model=HealthResponse, summary="Health check")
@@ -336,8 +369,15 @@ async def scan_email(file: UploadFile = File(..., description="The .eml file to 
         max_checks=5,
     )
 
+    normalized_ml_score = _normalize_ml_score(
+        parsed,
+        phishing_score.probability,
+        vt_summary.vt_score,
+        vt_summary.configured,
+    )
+
     # Hybrid decision: ML score is the base, VT can lift the final score.
-    hybrid_score = max(phishing_score.probability, vt_summary.vt_score)
+    hybrid_score = max(normalized_ml_score, vt_summary.vt_score)
     if vt_summary.any_malicious:
         hybrid_score = max(hybrid_score, 0.80)
     hybrid_score = round(min(1.0, hybrid_score), 4)
@@ -361,6 +401,7 @@ async def scan_email(file: UploadFile = File(..., description="The .eml file to 
 
     explanation = ScanExplanation(
         top_tokens=phishing_score.top_tokens,
+        trusted_sender_domain=_is_trusted_sender_domain(parsed.sender_domain),
         urgency_signal_count=parsed.urgency_signal_count,
         suspicious_sender_domain=suspicious_sender,
         reply_to_mismatch=reply_to_mismatch,
@@ -391,9 +432,10 @@ async def scan_email(file: UploadFile = File(..., description="The .eml file to 
 
     elapsed = round((time.monotonic() - start) * 1000)
     logger.info(
-        "Scan complete in %dms: ml=%.3f vt=%.3f hybrid=%.3f tier=%s is_phishing=%s",
+        "Scan complete in %dms: ml=%.3f normalized_ml=%.3f vt=%.3f hybrid=%.3f tier=%s is_phishing=%s",
         elapsed,
         phishing_score.probability,
+        normalized_ml_score,
         vt_summary.vt_score,
         hybrid_score,
         hybrid_risk_tier,

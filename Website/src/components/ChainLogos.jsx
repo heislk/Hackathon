@@ -97,10 +97,6 @@ export default function ChainLogos() {
   return (
     <section className="chains" id="chains">
       <div className="chains__container">
-        <span className="section-eyebrow">
-          <span className="section-eyebrow__dot" />
-          Multi-Chain Coverage
-        </span>
         <h2>Protecting assets across every major blockchain.</h2>
         <p className="chains__subtitle">
           Our analysis engines monitor transactions, smart contracts, and wallet behavior

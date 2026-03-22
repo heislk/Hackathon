@@ -12,23 +12,23 @@ import "../styles/business/page.css";
 const MARKET_FACTS = [
   {
     value: "$3.4B+",
-    label: "stolen in crypto theft through December 2025",
+    label: "stolen from crypto platforms and wallets through December 2025",
     source: "Chainalysis",
   },
   {
     value: "158K",
-    label: "personal wallet compromise incidents tracked in 2025",
+    label: "personal wallet compromise incidents tracked in 2025 affecting 80K unique victims",
     source: "Chainalysis",
   },
   {
-    value: "$16B+",
-    label: "reported internet crime losses in the 2024 IC3 report",
-    source: "FBI / IC3",
+    value: "$9.3B",
+    label: "lost by Americans to crypto fraud in 2024 — a 66% year-over-year increase",
+    source: "FBI IC3",
   },
   {
-    value: "147",
-    label: "incidents in our 2025 loss dataset totaling $3.2B",
-    source: "Internal incident dataset",
+    value: "~70%",
+    label: "of 2024 stolen funds came from private key and infrastructure compromises",
+    source: "TRM Labs",
   },
 ];
 const JUMP_LINKS = [
@@ -57,10 +57,6 @@ export default function ForBusiness() {
         <section className="business-page__market" aria-labelledby="market-context-title">
           <div className="business-page__market-inner">
             <div className="business-page__market-copy">
-              <span className="section-eyebrow">
-                <span className="section-eyebrow__dot section-eyebrow__dot--teal" />
-                Market Context
-              </span>
               <h2 id="market-context-title">
                 Exchange operators are now expected to stop scam-driven loss before settlement.
               </h2>

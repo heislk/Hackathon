@@ -2,14 +2,10 @@ export default function HowItWorks() {
   return (
     <section className="how-it-works" id="how-it-works">
       <div className="how-it-works__container">
-        <span className="section-eyebrow">
-          <span className="section-eyebrow__dot" />
-          How CryptoSecure Works
-        </span>
         <h2>Three steps. One clear answer.</h2>
         <p className="how-it-works__subtitle">
-          No technical expertise needed. Submit what looks suspicious and get a plain-English
-          risk assessment in seconds.
+          Learn the patterns, compare real messages with fake ones, and get a plain-English
+          explanation of what looks suspicious.
         </p>
         <div className="how-it-works__steps">
           <div className="step-card">
@@ -23,8 +19,8 @@ export default function HowItWorks() {
             <p>
               Upload a suspicious email (.EML), paste a wallet address or transaction hash, share
               a screenshot of a text message, drop in a suspicious URL, or paste multiple wallet
-              addresses and txids separated by commas. Email files are analyzed in the email
-              intelligence service, while live chain scans happen here.
+              addresses and txids separated by commas. You can also use the exchange reference
+              tables and examples first if you just want to sanity-check something quickly.
             </p>
             <div className="step-card__tags">
               <span>.EML files</span>
@@ -51,7 +47,7 @@ export default function HowItWorks() {
             <p>
               Our in-house AI cross-references Arkham-enriched chain intelligence, VirusTotal
               databases, known phishing patterns, and wallet behavior analytics to evaluate the
-              risk.
+              risk and translate that into reasons a normal person can understand.
             </p>
             <div className="step-card__tags">
               <span>Arkham intelligence</span>
@@ -76,7 +72,8 @@ export default function HowItWorks() {
             <h3>Get your risk report</h3>
             <p>
               Receive a clear verdict — Likely Safe, Suspicious, or High Risk — with the exact
-              red flags found and recommended next steps in plain language.
+              red flags found, the exchange-specific rules you should verify, and recommended next
+              steps in plain language.
             </p>
             <div className="step-card__tags">
               <span>Risk score</span>

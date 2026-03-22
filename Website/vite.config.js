@@ -4,6 +4,7 @@ import fs from 'node:fs'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import Papa from 'papaparse'
+import { createAuthApiPlugin } from './server/auth-plugin.mjs'
 
 const chainIntelEntry = pathToFileURL(
   path.resolve(process.cwd(), 'chain-intelligence/dist/src/index.js')
@@ -302,5 +303,5 @@ function createChainIntelApiPlugin() {
 
 // https://vite.dev/config/
 export default defineConfig({
-  plugins: [react(), createChainIntelApiPlugin()],
+  plugins: [react(), createChainIntelApiPlugin(), createAuthApiPlugin()],
 })

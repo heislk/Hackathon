@@ -10,10 +10,6 @@ function OurMission() {
       <main>
         <section className="mission-hero">
           <div className="mission-hero__container">
-            <span className="section-eyebrow">
-              <span className="section-eyebrow__dot" />
-              Our Mission
-            </span>
             <h1>Reduce preventable crypto losses before funds disappear.</h1>
             <p>
               CryptoSecure exists to make suspicious activity easier to verify in the moment it

@@ -99,20 +99,20 @@ export default function HeroSection() {
           Protecting crypto holders worldwide
         </div>
         <h1 className="hero__title">
-          Your crypto is at risk. <br />
-          <span className="hero__title-accent">Every single transaction.</span>
+          Learn to spot phishing. <br />
+          <span className="hero__title-accent">Before it costs you everything.</span>
         </h1>
         <p className="hero__subtitle">
-          Every time you send a transaction, connect a wallet, or click a link — you're exposed.
-          CryptoSecure analyzes on-chain activity, scans phishing emails, and catches fraudulent
-          transactions <em>before</em> you lose everything.
+          CryptoSecure helps people learn what phishing looks like, compare real vs fake exchange
+          messages, and scan suspicious emails, links, wallet addresses, and transaction activity
+          <em> before </em> they make a costly mistake.
         </p>
         <div className="hero__actions">
           <Link className="btn btn--primary btn--lg" to="/risk-scan">
-            Scan for Threats Now
+            Analyze a Suspicious Message
           </Link>
-          <a className="btn btn--outline btn--lg" href="#threat-simulator">
-            See How Attacks Work
+          <a className="btn btn--outline btn--lg" href="#phishing-examples">
+            Compare Legit vs Fake
           </a>
         </div>
         <div className="hero__stats">
